@@ -368,7 +368,10 @@ Page::GetAnnotation(const CallbackInfo& info)
   AssertFunctionArgs(info, 1, { napi_valuetype::napi_number });
   int index = info[0].As<Number>();
   auto ptr = page->GetAnnotation(index);
-  auto instance = Napi::External<PdfAnnotation>::New(info.Env(), ptr);
+  auto instance = Napi::External<PdfAnnotation>::New(info.Env(), ptr, [](Napi::Env env, PdfAnnotation* data){
+      HandleScope scope(env);
+      delete data;
+});
   return Annotation::constructor.New({ instance });
 }
 Napi::Value

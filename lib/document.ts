@@ -5,6 +5,7 @@ import {Encrypt, ProtectionOption} from './encrypt';
 import {EventEmitter} from 'events';
 import {Font} from "./painter";
 import {Signer} from './signer';
+import { Form } from './form';
 
 export const __mod = require('bindings')('npdf')
 
@@ -56,6 +57,8 @@ export interface IDocument {
     isAllowed(protection: ProtectionOption): boolean
 
     createFont(opts: CreateFontOpts): Font
+
+    getForm(): Form
 }
 
 
@@ -241,5 +244,9 @@ export class Document extends EventEmitter implements IDocument {
         if (device instanceof Signer)
             this._instance.writeUpdate((device as any)._instance)
         else this._instance.writeUpdate(device)
+    }
+
+    getForm():Form {
+        return new Form(this._instance.getForm())
     }
 }

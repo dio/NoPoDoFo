@@ -77,7 +77,7 @@ Dictionary::AddKey(const CallbackInfo& info)
   } else if (v.IsObject()) {
     auto objWrap = info[1].As<Object>();
     Obj* obj = Obj::Unwrap(objWrap);
-    o = *obj->GetObject();
+    o = obj->GetObject();
   }
   PdfName key(info[0].As<String>().Utf8Value());
   GetDictionary()->AddKey(key, o);

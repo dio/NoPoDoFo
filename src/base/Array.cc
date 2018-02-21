@@ -140,7 +140,7 @@ Array::Push(const CallbackInfo& info)
   }
   try {
     auto item = Obj::Unwrap(wrapper);
-    GetArray()->push_back(*item->GetObject());
+    GetArray()->push_back(item->GetObject());
 
   } catch (PdfError& err) {
     ErrorHandler(err, info);

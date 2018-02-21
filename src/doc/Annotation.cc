@@ -349,7 +349,7 @@ Annotation::~Annotation()
 {
   if (annot != nullptr) {
     HandleScope scope(Env());
-    delete annot;
+//    delete annot;
   }
 }
 }

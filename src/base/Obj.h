@@ -18,7 +18,6 @@ class Obj : public Napi::ObjectWrap<Obj>
 public:
   explicit Obj(const Napi::CallbackInfo&);
   ~Obj();
-
   static Napi::FunctionReference constructor;
   static void Initialize(Napi::Env& env, Napi::Object& target);
   Napi::Value GetStream(const Napi::CallbackInfo&);
@@ -44,7 +43,7 @@ public:
   void Clear(const Napi::CallbackInfo&);
   Napi::Value Eq(const Napi::CallbackInfo&);
 
-  PoDoFo::PdfObject* GetObject() { return obj; }
+  PoDoFo::PdfObject & GetObject() { return *obj; }
 
 private:
   PoDoFo::PdfObject* obj;

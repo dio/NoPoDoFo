@@ -78,11 +78,10 @@ public:
   void SetFileAttachment(const CallbackInfo&);
   Napi::Value HasFileAttachment(const CallbackInfo&);
 
-  PdfAnnotation* GetAnnotation() { return annot; }
+  PdfAnnotation & GetAnnotation() { return *annot; }
 
 private:
   PdfAnnotation* annot;
-  //  Document* doc;
 };
 }
 #endif // NPDF_ANNOTATION_H
