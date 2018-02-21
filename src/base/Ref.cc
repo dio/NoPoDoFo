@@ -2,7 +2,7 @@
  * This file is part of the NoPoDoFo (R) project.
  * Copyright (c) 2017-2018
  * Authors: Cory Mickelson, et al.
- * 
+ *
  * NoPoDoFo is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -35,7 +35,7 @@ Ref::Ref(const Napi::CallbackInfo& info)
     const pdf_objnum i = info[0].As<Number>();
     ref = new PdfReference(i, 0);
   } else if (info.Length() == 1 && info[0].Type() == napi_external) {
-    ref = info[0].As<Napi::External<PdfReference>>().Data();
+    ref = new PdfReference(*info[0].As<Napi::External<PdfReference>>().Data());
   }
 }
 

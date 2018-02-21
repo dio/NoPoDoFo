@@ -2,7 +2,7 @@
  * This file is part of the NoPoDoFo (R) project.
  * Copyright (c) 2017-2018
  * Authors: Cory Mickelson, et al.
- * 
+ *
  * NoPoDoFo is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -64,15 +64,18 @@ Obj::Initialize(Napi::Env& env, Napi::Object& target)
 
 Obj::Obj(const Napi::CallbackInfo& info)
   : ObjectWrap<Obj>(info)
-  , obj(info[0].As<Napi::External<PdfObject>>().Data())
 {
+  obj = info[0].As<Napi::External<PdfObject>>().Data();
+  //  PdfObject* ext = info[0].As<Napi::External<PdfObject>>().Data();
+  //  obj = new PdfObject(*ext);
 }
 
 Obj::~Obj()
 {
   if (obj != nullptr) {
     HandleScope scope(Env());
-    //delete obj;
+    obj = nullptr;
+    delete obj;
   }
 }
 
@@ -328,7 +331,8 @@ protected:
   void Execute() override
   {
     try {
-      value = obj->GetObject().GetByteOffset(arg.c_str(), ePdfWriteMode_Default);
+      value =
+        obj->GetObject().GetByteOffset(arg.c_str(), ePdfWriteMode_Default);
     } catch (PdfError& err) {
       SetError(ErrorHandler::WriteMsg(err));
     } catch (Napi::Error& err) {

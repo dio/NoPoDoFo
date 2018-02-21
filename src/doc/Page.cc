@@ -2,7 +2,7 @@
  * This file is part of the NoPoDoFo (R) project.
  * Copyright (c) 2017-2018
  * Authors: Cory Mickelson, et al.
- * 
+ *
  * NoPoDoFo is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -383,10 +383,11 @@ Page::GetAnnotation(const CallbackInfo& info)
   AssertFunctionArgs(info, 1, { napi_valuetype::napi_number });
   int index = info[0].As<Number>();
   auto ptr = page->GetAnnotation(index);
-  auto instance = Napi::External<PdfAnnotation>::New(info.Env(), ptr, [](Napi::Env env, PdfAnnotation* data){
+  auto instance = Napi::External<PdfAnnotation>::New(
+    info.Env(), ptr, [](Napi::Env env, PdfAnnotation* data) {
       HandleScope scope(env);
       delete data;
-});
+    });
   return Annotation::constructor.New({ instance });
 }
 Napi::Value
@@ -406,7 +407,9 @@ Page::CreateAnnotation(const CallbackInfo& info)
 Page::~Page()
 {
   Napi::HandleScope scope(Env());
-  delete page;
-  //  parent = nullptr;
+  if (page != nullptr) {
+    page = nullptr;
+    delete page;
+  }
 }
 }

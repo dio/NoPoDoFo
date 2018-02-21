@@ -17,5 +17,6 @@ test('get contents as string, contents tokenizer', t => {
         t.assert(pageContents.length === 155) // fix this
         t.end()
     })
+    .on('error', e => t.fail('failed to parse contents'))
 })
 
