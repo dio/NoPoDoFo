@@ -32,7 +32,7 @@ using namespace PoDoFo;
 
 namespace NoPoDoFo {
 
-FunctionReference Document::constructor;
+FunctionReference Document::constructor; // NOLINT
 
 void
 Document::Initialize(Napi::Env& env, Napi::Object& target)
@@ -43,10 +43,9 @@ Document::Initialize(Napi::Env& env, Napi::Object& target)
     "Document",
     { // StaticMethod("gc", &Document::GC),
       InstanceAccessor("password", nullptr, &Document::SetPassword),
-      InstanceAccessor("encrypt", &Document::GetEncrypt, &Document::SetEncrypt),
+      InstanceAccessor("encrypt", nullptr, &Document::SetEncrypt),
       InstanceMethod("load", &Document::Load),
       InstanceMethod("getPageCount", &Document::GetPageCount),
-      InstanceMethod("getPage", &Document::GetPage),
       InstanceMethod("mergeDocument", &Document::MergeDocument),
       InstanceMethod("deletePage", &Document::DeletePage),
       InstanceMethod("getVersion", &Document::GetVersion),
@@ -89,29 +88,6 @@ Document::GetPageCount(const CallbackInfo& info)
 {
   int pages = document->GetPageCount();
   return Napi::Number::New(info.Env(), pages);
-}
-
-Napi::Value
-Document::GetPage(const CallbackInfo& info)
-{
-  try {
-    EscapableHandleScope scope(info.Env());
-    if (info.Length() != 1 || !info[0].IsNumber()) {
-      throw Napi::Error::New(info.Env(),
-                             "getPage takes an argument of 1, of type number.");
-    }
-    int n = info[0].As<Number>();
-    int pl = document->GetPageCount();
-    if (n > pl) {
-      throw Napi::RangeError::New(info.Env(), "Index out of page count range");
-    }
-    PdfPage* page = document->GetPage(n);
-    auto pagePtr = Napi::External<PdfPage>::New(info.Env(), page);
-    auto instance = Page::constructor.New({ pagePtr });
-    return scope.Escape(instance);
-  } catch (PdfError& err) {
-    ErrorHandler(err, info);
-  }
 }
 
 void
@@ -363,22 +339,11 @@ Document::SetEncrypt(const CallbackInfo& info, const Napi::Value& value)
 }
 
 Napi::Value
-Document::GetEncrypt(const CallbackInfo& info)
-{
-  const PdfEncrypt* enc = document->GetEncrypt();
-  auto ptr = const_cast<PdfEncrypt*>(enc);
-  auto encryptPtr = Napi::External<PdfEncrypt>::New(info.Env(), ptr);
-  auto instance = Encrypt::constructor.New(
-    { encryptPtr, External<Document>::New(info.Env(), this) });
-  return instance;
-}
-
-Napi::Value
 Document::GetObjects(const CallbackInfo& info)
 {
   EscapableHandleScope scope(info.Env());
   try {
-    auto js = Napi::Array::New(info.Env());
+    auto js = Array::New(info.Env());
     uint32_t count = 0;
     for (auto& item : document->GetObjects()) {
       auto instance = External<PdfObject>::New(info.Env(), item);

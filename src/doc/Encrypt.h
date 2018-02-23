@@ -45,8 +45,9 @@ public:
   Napi::Value GetEncryptionKey(const Napi::CallbackInfo&);
   Napi::Value GetKeyLength(const Napi::CallbackInfo&);
 
+  const PoDoFo::PdfEncrypt * GetEncrypt() { return document->GetDocument()->GetEncrypt(); }
+
 private:
-  PoDoFo::PdfEncrypt* encrypt;
   Document* document;
 };
 }

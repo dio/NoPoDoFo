@@ -22,6 +22,7 @@
 
 #include <napi.h>
 #include <podofo/podofo.h>
+#include "Obj.h"
 
 namespace NoPoDoFo {
 class Ref : public Napi::ObjectWrap<Ref>
@@ -42,10 +43,14 @@ public:
   Napi::Value IsIndirect(const Napi::CallbackInfo&);
 
   Napi::Value GetObj(const Napi::CallbackInfo&);
-  PoDoFo::PdfReference GetRef() { return *ref; }
+
+  PoDoFo::PdfReference GetRef() {
+    !ref ? obj->GetObject()->Reference() : *ref;
+  }
 
 private:
-  PoDoFo::PdfReference* ref;
+  Obj* obj = nullptr;
+  PoDoFo::PdfReference* ref = nullptr;
 };
 }
 #endif

@@ -18,20 +18,20 @@
  */
 
 #include "Field.h"
-#include "Document.h"
-#include "Page.h"
+
+
+namespace NoPoDoFo {
 
 using namespace Napi;
 using namespace PoDoFo;
 
-namespace NoPoDoFo {
-FunctionReference Field::constructor;
+FunctionReference Field::constructor; // NOLINT
 
 Field::Field(const CallbackInfo& info)
   : ObjectWrap(info)
-  , field(make_unique<PdfField>(*info[0].As<External<PdfField>>().Data()))
-//    , field(info[0].As<External<PdfField>>().Data())
 {
+  page = Page::Unwrap(info[0].As<Object>());
+  fieldIndex = info[1].As<Number>();
 }
 
 void
@@ -49,7 +49,7 @@ Field::Initialize(Napi::Env& env, Napi::Object& target)
                   InstanceMethod("setMappingName", &Field::SetMappingName),
                   InstanceMethod("setRequired", &Field::SetRequired),
                   InstanceMethod("isRequired", &Field::IsRequired) });
-  constructor = Napi::Persistent(ctor);
+  constructor = Persistent(ctor);
   constructor.SuppressDestruct();
   target.Set("Field", ctor);
 }
@@ -58,7 +58,7 @@ Napi::Value
 Field::GetType(const CallbackInfo& info)
 {
   string typeStr;
-  switch ((*field).GetType()) {
+  switch (GetField().GetType()) {
     case PoDoFo::EPdfField::ePdfField_CheckBox:
       typeStr = "CheckBox";
       break;
@@ -90,21 +90,21 @@ Napi::Value
 Field::GetFieldName(const CallbackInfo& info)
 {
   return Napi::String::New(info.Env(),
-                           (*field).GetFieldName().GetStringUtf8());
+                           GetField().GetFieldName().GetStringUtf8());
 }
 
 Napi::Value
 Field::GetAlternateName(const CallbackInfo& info)
 {
   return Napi::String::New(
-    info.Env(), (*field).GetAlternateName().GetStringUtf8());
+    info.Env(), GetField().GetAlternateName().GetStringUtf8());
 }
 
 Napi::Value
 Field::GetMappingName(const CallbackInfo& info)
 {
   return Napi::String::New(info.Env(),
-                           (*field).GetMappingName().GetStringUtf8());
+                           GetField().GetMappingName().GetStringUtf8());
 }
 
 void
@@ -112,7 +112,7 @@ Field::SetAlternateName(const CallbackInfo& info)
 {
   AssertFunctionArgs(info, 1, { napi_valuetype::napi_string });
   PdfString value(info[0].As<String>().Utf8Value().c_str());
-  (*field).SetAlternateName(value);
+  GetField().SetAlternateName(value);
 }
 
 void
@@ -120,7 +120,7 @@ Field::SetMappingName(const CallbackInfo& info)
 {
   AssertFunctionArgs(info, 1, { napi_valuetype::napi_string });
   PdfString value(info[0].As<String>().Utf8Value().c_str());
-  (*field).SetMappingName(value);
+  GetField().SetMappingName(value);
 }
 
 void
@@ -128,19 +128,13 @@ Field::SetRequired(const CallbackInfo& info)
 {
   AssertFunctionArgs(info, 1, { napi_valuetype::napi_boolean });
   bool value = info[0].As<Boolean>();
-  (*field).SetRequired(value);
+  GetField().SetRequired(value);
 }
 
 Napi::Value
 Field::IsRequired(const CallbackInfo& info)
 {
-  try {
-    Napi::Boolean::New(info.Env(), (*field).IsRequired());
-  } catch (PdfError& err) {
-    stringstream msg;
-    msg << "PoDoFo Failure: " << err.GetError() << " " << endl;
-    throw Napi::Error::New(info.Env(), msg.str());
-  }
+  return Napi::Boolean::New(info.Env(), GetField().IsRequired());
 }
 
 }

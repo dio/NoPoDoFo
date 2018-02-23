@@ -2,7 +2,7 @@
  * This file is part of the NoPoDoFo (R) project.
  * Copyright (c) 2017-2018
  * Authors: Cory Mickelson, et al.
- * 
+ *
  * NoPoDoFo is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -20,14 +20,13 @@
 #include "Obj.h"
 #include "../ErrorHandler.h"
 #include "../ValidateArguments.h"
-#include "Array.h"
-#include "Dictionary.h"
-#include "Ref.h"
+
+namespace NoPoDoFo {
 
 using namespace Napi;
 using namespace PoDoFo;
-namespace NoPoDoFo {
-FunctionReference Obj::constructor;
+
+FunctionReference Obj::constructor; // NOLINT
 
 void
 Obj::Initialize(Napi::Env& env, Napi::Object& target)
@@ -39,7 +38,6 @@ Obj::Initialize(Napi::Env& env, Napi::Object& target)
     { InstanceAccessor("stream", &Obj::GetStream, nullptr),
       InstanceAccessor("type", &Obj::GetDataType, nullptr),
       InstanceAccessor("length", &Obj::GetObjectLength, nullptr),
-      InstanceAccessor("reference", &Obj::Reference, nullptr),
       InstanceAccessor("immutable", &Obj::GetImmutable, &Obj::SetImmutable),
       InstanceMethod("hasStream", &Obj::HasStream),
       InstanceMethod("getOffset", &Obj::GetByteOffset),
@@ -47,17 +45,14 @@ Obj::Initialize(Napi::Env& env, Napi::Object& target)
       InstanceMethod("flateCompressStream", &Obj::FlateCompressStream),
       InstanceMethod("delayedStreamLoad", &Obj::DelayedStreamLoad),
       InstanceMethod("getBool", &Obj::GetBool),
-      InstanceMethod("getDictionary", &Obj::GetDictionary),
       InstanceMethod("getNumber", &Obj::GetNumber),
       InstanceMethod("getReal", &Obj::GetReal),
       InstanceMethod("getString", &Obj::GetString),
       InstanceMethod("getName", &Obj::GetName),
-      InstanceMethod("getArray", &Obj::GetArray),
-      InstanceMethod("getReference", &Obj::GetReference),
       InstanceMethod("getRawData", &Obj::GetRawData),
       InstanceMethod("clear", &Obj::Clear),
       InstanceMethod("eq", &Obj::Eq) });
-  constructor = Napi::Persistent(ctor);
+  constructor = Persistent(ctor);
   constructor.SuppressDestruct();
   target.Set("Obj", ctor);
 }
@@ -70,10 +65,9 @@ Obj::Obj(const Napi::CallbackInfo& info)
 
 Obj::~Obj()
 {
-  if (obj != nullptr) {
-    HandleScope scope(Env());
-    delete obj;
-  }
+  HandleScope scope(Env());
+  delete obj;
+  obj = nullptr;
 }
 
 void
@@ -179,21 +173,6 @@ Obj::Eq(const CallbackInfo& info)
   return Boolean::New(info.Env(), value->GetObject() == this->GetObject());
 }
 
-Napi::Value
-Obj::Reference(const CallbackInfo& info)
-{
-  try {
-    PdfReference init = obj->Reference();
-    auto initPtr = Napi::External<PdfReference>::New(info.Env(), &init);
-    return Ref::constructor.New({ initPtr });
-  } catch (PdfError& err) {
-    ErrorHandler(err, info);
-  } catch (Napi::Error& err) {
-    ErrorHandler(err, info);
-  }
-  return info.Env().Undefined();
-}
-
 void
 Obj::FlateCompressStream(const CallbackInfo& info)
 {
@@ -261,47 +240,12 @@ Obj::GetName(const CallbackInfo& info)
 }
 
 Napi::Value
-Obj::GetArray(const CallbackInfo& info)
-{
-  if (!obj->IsArray()) {
-    throw Napi::Error::New(info.Env(), "Obj only accessible as array");
-  }
-  auto ptr = External<PdfArray>::New(info.Env(), &obj->GetArray());
-  auto instance = NoPoDoFo::Array::constructor.New({ ptr });
-  return instance;
-}
-
-Napi::Value
 Obj::GetBool(const CallbackInfo& info)
 {
   if (!obj->IsNumber()) {
     throw Napi::Error::New(info.Env(), "Obj not accessible as a boolean");
   }
   return Boolean::New(info.Env(), obj->GetBool());
-}
-
-Napi::Value
-Obj::GetReference(const CallbackInfo& info)
-{
-  if (!obj->IsReference()) {
-    throw Napi::Error::New(info.Env(), "Obj only accessible as Ref");
-  }
-  auto init = obj->GetReference();
-  auto ptr = External<PdfReference>::New(info.Env(), &init);
-  auto instance = Ref::constructor.New({ ptr });
-  return instance;
-}
-
-Napi::Value
-Obj::GetDictionary(const CallbackInfo& info)
-{
-  if (!obj->IsDictionary()) {
-    throw Napi::Error::New(info.Env(), "Obj only accessible as Ref");
-  }
-  auto init = obj->GetDictionary();
-  auto ptr = External<PdfDictionary>::New(info.Env(), &init);
-  auto instance = Dictionary::constructor.New({ ptr });
-  return instance;
 }
 
 Napi::Value

@@ -39,7 +39,6 @@ public:
   static void Initialize(Napi::Env& env, Napi::Object& target);
   Napi::Value Load(const Napi::CallbackInfo&);
   Napi::Value GetPageCount(const Napi::CallbackInfo&);
-  Napi::Value GetPage(const Napi::CallbackInfo&);
   void MergeDocument(const Napi::CallbackInfo&);
   void DeletePage(const Napi::CallbackInfo&);
   void SetPassword(const Napi::CallbackInfo&, const Napi::Value&);
@@ -49,7 +48,6 @@ public:
   Napi::Value WriteBuffer(const Napi::CallbackInfo&);
   Napi::Value GetWriteMode(const Napi::CallbackInfo&);
   void SetEncrypt(const Napi::CallbackInfo&, const Napi::Value&);
-  Napi::Value GetEncrypt(const Napi::CallbackInfo&);
   Napi::Value GetObjects(const Napi::CallbackInfo&);
   Napi::Value GetTrailer(const Napi::CallbackInfo&);
   Napi::Value IsAllowed(const Napi::CallbackInfo&);

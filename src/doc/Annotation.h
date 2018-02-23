@@ -27,10 +27,12 @@
 #include <podofo/podofo.h>
 #include <vector>
 
+
+namespace NoPoDoFo {
+
 using namespace std;
 using namespace PoDoFo;
 
-namespace NoPoDoFo {
 class Annotation : public ObjectWrap<Annotation>
 {
 public:
@@ -93,11 +95,11 @@ public:
   void SetFileAttachment(const CallbackInfo&);
   Napi::Value HasFileAttachment(const CallbackInfo&);
 
-  PdfAnnotation* GetAnnotation() { return annot; }
+  PdfAnnotation* GetAnnotation() { return page->GetPage()->GetAnnotation(annotIndex); }
 
 private:
-  PdfAnnotation* annot;
-  //  Document* doc;
+  Page* page;
+  int annotIndex;
 };
 }
 #endif // NPDF_ANNOTATION_H

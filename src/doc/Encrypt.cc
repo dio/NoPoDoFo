@@ -23,18 +23,18 @@
 #include "../ValidateArguments.h"
 #include <algorithm>
 
+
+namespace NoPoDoFo {
+
 using namespace Napi;
 using namespace PoDoFo;
 
-namespace NoPoDoFo {
-Napi::FunctionReference Encrypt::constructor;
+FunctionReference Encrypt::constructor; // NOLINT
 
 Encrypt::Encrypt(const Napi::CallbackInfo& info)
   : ObjectWrap(info)
 {
-  AssertFunctionArgs(info, 2, { napi_external, napi_external });
-  encrypt = info[0].As<External<PdfEncrypt>>().Data();
-  document = info[1].As<External<Document>>().Data();
+  document = Document::Unwrap(info[0].As<Object>());
 }
 
 void
@@ -47,7 +47,7 @@ Encrypt::Initialize(Napi::Env& env, Napi::Object& target)
     { InstanceAccessor("user", &Encrypt::GetUserValue, nullptr),
       InstanceAccessor("owner", &Encrypt::GetOwnerValue, nullptr),
       InstanceAccessor("permission", &Encrypt::GetOwnerValue, nullptr),
-      InstanceAccessor("encryptionKey", &Encrypt::GetEncryptionKey, nullptr),
+      InstanceAccessor("GetEncrypt()ionKey", &Encrypt::GetEncryptionKey, nullptr),
       InstanceAccessor("keyLength", &Encrypt::GetKeyLength, nullptr),
       InstanceMethod("isAllowed", &Encrypt::IsAllowed),
       InstanceMethod("authenticate", &Encrypt::Authenticate) });
@@ -70,21 +70,21 @@ Encrypt::IsAllowed(const CallbackInfo& info)
   bool is = false;
   try {
     if (key == "Copy") {
-      is = encrypt->IsCopyAllowed();
+      is = GetEncrypt()->IsCopyAllowed();
     } else if (key == "Print") {
-      is = encrypt->IsEditAllowed();
+      is = GetEncrypt()->IsEditAllowed();
     } else if (key == "Edit") {
-      is = encrypt->IsEditAllowed();
+      is = GetEncrypt()->IsEditAllowed();
     } else if (key == "EditNotes") {
-      is = encrypt->IsEditNotesAllowed();
+      is = GetEncrypt()->IsEditNotesAllowed();
     } else if (key == "FillAndSign") {
-      is = encrypt->IsFillAndSignAllowed();
+      is = GetEncrypt()->IsFillAndSignAllowed();
     } else if (key == "Accessible") {
-      is = encrypt->IsAccessibilityAllowed();
+      is = GetEncrypt()->IsAccessibilityAllowed();
     } else if (key == "DocAssembly") {
-      is = encrypt->IsDocAssemblyAllowed();
+      is = GetEncrypt()->IsDocAssemblyAllowed();
     } else if (key == "HighPrint") {
-      is = encrypt->IsHighPrintAllowed();
+      is = GetEncrypt()->IsHighPrintAllowed();
     } else {
       throw Napi::Error::New(info.Env(), "Key unknown");
     }
@@ -124,46 +124,46 @@ Encrypt::Authenticate(const CallbackInfo& info)
                 ->GetArray()[0]
                 .GetString()
                 .GetStringUtf8();
-  return Napi::Boolean::New(info.Env(), encrypt->Authenticate(pwd, id));
+  return Napi::Boolean::New(info.Env(), const_cast<PdfEncrypt*>(GetEncrypt())->Authenticate(pwd, id));
 }
 
 Napi::Value
 Encrypt::GetOwnerValue(const CallbackInfo& info)
 {
   return String::New(info.Env(),
-                     reinterpret_cast<const char*>(encrypt->GetOValue()));
+                     reinterpret_cast<const char*>(GetEncrypt()->GetOValue()));
 }
 
 Napi::Value
 Encrypt::GetUserValue(const CallbackInfo& info)
 {
   return String::New(info.Env(),
-                     reinterpret_cast<const char*>(encrypt->GetUValue()));
+                     reinterpret_cast<const char*>(GetEncrypt()->GetUValue()));
 }
 
 Napi::Value
 Encrypt::GetPermissionValue(const CallbackInfo& info)
 {
-  return Number::New(info.Env(), encrypt->GetPValue());
+  return Number::New(info.Env(), GetEncrypt()->GetPValue());
 }
 
 Napi::Value
 Encrypt::GetEncryptionKey(const CallbackInfo& info)
 {
   return String::New(
-    info.Env(), reinterpret_cast<const char*>(encrypt->GetEncryptionKey()));
+    info.Env(), reinterpret_cast<const char*>(GetEncrypt()->GetEncryptionKey()));
 }
 
 Napi::Value
 Encrypt::GetKeyLength(const CallbackInfo& info)
 {
-  return Number::New(info.Env(), encrypt->GetKeyLength());
+  return Number::New(info.Env(), GetEncrypt()->GetKeyLength());
 }
 Encrypt::~Encrypt()
 {
-  if (encrypt != nullptr) {
+  if (GetEncrypt() != nullptr) {
     HandleScope scope(Env());
-    delete encrypt;
+    delete GetEncrypt();
     document = nullptr;
   }
 }

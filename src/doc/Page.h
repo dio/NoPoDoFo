@@ -24,6 +24,7 @@
 
 #include <napi.h>
 #include <podofo/podofo.h>
+#include "Document.h"
 
 namespace NoPoDoFo {
 
@@ -60,10 +61,12 @@ public:
   Napi::Value GetNumAnnots(const Napi::CallbackInfo&);
   void DeleteAnnotation(const Napi::CallbackInfo&);
 
-  PoDoFo::PdfPage* GetPage() { return page; }
+  PoDoFo::PdfPage* GetPage() { return document->GetDocument()->GetPage(pageIndex); }
 
 private:
-  PoDoFo::PdfPage* page;
+  Document* document;
+  int pageIndex;
+//  PoDoFo::PdfPage* page;
   void GetFieldObject(const Napi::CallbackInfo& info,
                       Napi::Object&,
                       PoDoFo::PdfField&);
