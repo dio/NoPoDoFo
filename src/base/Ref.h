@@ -23,6 +23,7 @@
 #include "Obj.h"
 #include <napi.h>
 #include <podofo/podofo.h>
+#include "Obj.h"
 
 namespace NoPoDoFo {
 class Ref : public Napi::ObjectWrap<Ref>
