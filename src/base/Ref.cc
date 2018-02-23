@@ -2,7 +2,7 @@
  * This file is part of the NoPoDoFo (R) project.
  * Copyright (c) 2017-2018
  * Authors: Cory Mickelson, et al.
- * 
+ *
  * NoPoDoFo is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -22,11 +22,12 @@
 #include "../ValidateArguments.h"
 #include "Obj.h"
 
+namespace NoPoDoFo {
+
 using namespace Napi;
 using namespace PoDoFo;
 
-namespace NoPoDoFo {
-Napi::FunctionReference Ref::constructor;
+Napi::FunctionReference Ref::constructor; // NOLINT
 
 Ref::Ref(const Napi::CallbackInfo& info)
   : ObjectWrap(info)
@@ -36,6 +37,20 @@ Ref::Ref(const Napi::CallbackInfo& info)
     ref = new PdfReference(i, 0);
   } else if (info.Length() == 1 && info[0].Type() == napi_external) {
     ref = info[0].As<Napi::External<PdfReference>>().Data();
+  } else if (info[0].IsObject()) {
+    obj = Obj::Unwrap(info[0].As<Object>());
+  }
+}
+
+Ref::~Ref()
+{
+  HandleScope scope(Env());
+  if (ref != nullptr) {
+    delete ref;
+    ref = nullptr;
+  }
+  if (obj != nullptr) {
+    obj = nullptr;
   }
 }
 
@@ -43,7 +58,7 @@ void
 Ref::Initialize(Napi::Env& env, Napi::Object& target)
 {
   HandleScope scope(env);
-  Napi::Function ctor = DefineClass(
+  Function ctor = DefineClass(
     env,
     "Ref",
     { InstanceAccessor(
@@ -67,12 +82,12 @@ Ref::SetGenerationNumber(const Napi::CallbackInfo& info,
                            "Generation number must be of type number");
   }
   int gen = value.As<Napi::Number>();
-  ref->SetGenerationNumber(static_cast<const pdf_gennum>(gen));
+  GetRef().SetGenerationNumber(static_cast<const pdf_gennum>(gen));
 }
 Napi::Value
 Ref::GetGenerationNumber(const Napi::CallbackInfo& info)
 {
-  return Napi::Number::New(info.Env(), ref->GenerationNumber());
+  return Napi::Number::New(info.Env(), GetRef().GenerationNumber());
 }
 void
 Ref::SetObjectNumber(const Napi::CallbackInfo& info, const Napi::Value& value)
@@ -81,17 +96,17 @@ Ref::SetObjectNumber(const Napi::CallbackInfo& info, const Napi::Value& value)
     throw Napi::Error::New(info.Env(), "Object number must be of type number");
   }
   int objNumber = value.As<Napi::Number>();
-  ref->SetObjectNumber(static_cast<const pdf_gennum>(objNumber));
+  GetRef().SetObjectNumber(static_cast<const pdf_gennum>(objNumber));
 }
 Napi::Value
 Ref::GetObjectNumber(const Napi::CallbackInfo& info)
 {
-  return Napi::Number::New(info.Env(), ref->ObjectNumber());
+  return Napi::Number::New(info.Env(), GetRef().ObjectNumber());
 }
 Napi::Value
 Ref::ToString(const Napi::CallbackInfo& info)
 {
-  return Napi::String::New(info.Env(), ref->ToString());
+  return Napi::String::New(info.Env(), GetRef().ToString());
 }
 void
 Ref::Write(const Napi::CallbackInfo& info)
@@ -100,7 +115,7 @@ Ref::Write(const Napi::CallbackInfo& info)
   string output = info[0].As<Napi::String>().Utf8Value();
   try {
     PdfOutputDevice device(output.c_str());
-    ref->Write(&device, ePdfWriteMode_Default);
+    GetRef().Write(&device, ePdfWriteMode_Default);
   } catch (PdfError& err) {
     ErrorHandler(err, info);
   }
@@ -108,21 +123,18 @@ Ref::Write(const Napi::CallbackInfo& info)
 Napi::Value
 Ref::IsIndirect(const Napi::CallbackInfo& info)
 {
-  return Napi::Boolean::New(info.Env(), ref->IsIndirect());
+  return Napi::Boolean::New(info.Env(), GetRef().IsIndirect());
 }
 
 Napi::Value
 Ref::GetObj(const CallbackInfo& info)
 {
-  PdfObject obj(*ref);
-  auto instancePtr = External<PdfObject>::New(info.Env(), &obj);
-  return Obj::constructor.New({ instancePtr });
-}
-Ref::~Ref()
-{
-  if (ref != nullptr) {
-    HandleScope scope(Env());
-    delete ref;
+  if (obj) {
+    return obj->Value();
+  } else {
+    PdfObject obj(GetRef());
+    auto instancePtr = External<PdfObject>::New(info.Env(), &obj);
+    return Obj::constructor.New({ instancePtr });
   }
 }
 }

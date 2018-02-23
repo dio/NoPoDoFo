@@ -2,7 +2,7 @@
  * This file is part of the NoPoDoFo (R) project.
  * Copyright (c) 2017-2018
  * Authors: Cory Mickelson, et al.
- * 
+ *
  * NoPoDoFo is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -20,6 +20,7 @@
 #ifndef NPDF_REF_H
 #define NPDF_REF_H
 
+#include "Obj.h"
 #include <napi.h>
 #include <podofo/podofo.h>
 
@@ -42,10 +43,15 @@ public:
   Napi::Value IsIndirect(const Napi::CallbackInfo&);
 
   Napi::Value GetObj(const Napi::CallbackInfo&);
-  PoDoFo::PdfReference GetRef() { return *ref; }
+
+  PoDoFo::PdfReference GetRef()
+  {
+    return !ref ? obj->GetObject()->Reference() : *ref;
+  }
 
 private:
-  PoDoFo::PdfReference* ref;
+  Obj* obj = nullptr;
+  PoDoFo::PdfReference* ref = nullptr;
 };
 }
 #endif

@@ -42,10 +42,11 @@ public:
   void SetMappingName(const CallbackInfo&);
   void SetRequired(const CallbackInfo&);
   Napi::Value IsRequired(const CallbackInfo&);
-  PoDoFo::PdfField& GetField() { return *field; }
+  PoDoFo::PdfField GetField() { return page->GetPage()->GetField(fieldIndex); }
 
 private:
-  std::unique_ptr<PoDoFo::PdfField> field;
+  Page* page;
+  int fieldIndex;
 };
 }
 #endif // NPDF_PDFFIELD_H

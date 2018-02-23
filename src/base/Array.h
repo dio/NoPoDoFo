@@ -22,6 +22,7 @@
 
 #include <napi.h>
 #include <podofo/podofo.h>
+#include "Obj.h"
 
 namespace NoPoDoFo {
 class Array : public Napi::ObjectWrap<Array>
@@ -46,10 +47,10 @@ public:
   Napi::Value Pop(const Napi::CallbackInfo&);
   void Clear(const Napi::CallbackInfo&);
   Napi::Value Eq(const Napi::CallbackInfo&);
-  PoDoFo::PdfArray* GetArray() { return array; }
+  PoDoFo::PdfArray GetArray() { return obj->GetObject()->GetArray(); }
 
 private:
-  PoDoFo::PdfArray* array;
+  Obj* obj;
   Napi::Value GetObjAtIndex(const Napi::CallbackInfo&);
 };
 }

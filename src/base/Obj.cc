@@ -2,7 +2,7 @@
  * This file is part of the NoPoDoFo (R) project.
  * Copyright (c) 2017-2018
  * Authors: Cory Mickelson, et al.
- * 
+ *
  * NoPoDoFo is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -20,14 +20,14 @@
 #include "Obj.h"
 #include "../ErrorHandler.h"
 #include "../ValidateArguments.h"
-#include "Array.h"
-#include "Dictionary.h"
-#include "Ref.h"
+#include "Vector.h"
+
+namespace NoPoDoFo {
 
 using namespace Napi;
 using namespace PoDoFo;
-namespace NoPoDoFo {
-FunctionReference Obj::constructor;
+
+FunctionReference Obj::constructor; // NOLINT
 
 void
 Obj::Initialize(Napi::Env& env, Napi::Object& target)
@@ -39,7 +39,6 @@ Obj::Initialize(Napi::Env& env, Napi::Object& target)
     { InstanceAccessor("stream", &Obj::GetStream, nullptr),
       InstanceAccessor("type", &Obj::GetDataType, nullptr),
       InstanceAccessor("length", &Obj::GetObjectLength, nullptr),
-      InstanceAccessor("reference", &Obj::Reference, nullptr),
       InstanceAccessor("immutable", &Obj::GetImmutable, &Obj::SetImmutable),
       InstanceMethod("hasStream", &Obj::HasStream),
       InstanceMethod("getOffset", &Obj::GetByteOffset),
@@ -47,40 +46,48 @@ Obj::Initialize(Napi::Env& env, Napi::Object& target)
       InstanceMethod("flateCompressStream", &Obj::FlateCompressStream),
       InstanceMethod("delayedStreamLoad", &Obj::DelayedStreamLoad),
       InstanceMethod("getBool", &Obj::GetBool),
-      InstanceMethod("getDictionary", &Obj::GetDictionary),
       InstanceMethod("getNumber", &Obj::GetNumber),
       InstanceMethod("getReal", &Obj::GetReal),
       InstanceMethod("getString", &Obj::GetString),
       InstanceMethod("getName", &Obj::GetName),
-      InstanceMethod("getArray", &Obj::GetArray),
-      InstanceMethod("getReference", &Obj::GetReference),
       InstanceMethod("getRawData", &Obj::GetRawData),
       InstanceMethod("clear", &Obj::Clear),
       InstanceMethod("eq", &Obj::Eq) });
-  constructor = Napi::Persistent(ctor);
+  constructor = Persistent(ctor);
   constructor.SuppressDestruct();
   target.Set("Obj", ctor);
 }
 
 Obj::Obj(const Napi::CallbackInfo& info)
   : ObjectWrap<Obj>(info)
-  , obj(info[0].As<Napi::External<PdfObject>>().Data())
 {
+  if (info[0].Type() == napi_external) {
+    obj = info[0].As<External<PdfObject>>().Data();
+  } else if (info[0].IsObject() &&
+             info[0].As<Object>().InstanceOf(Vector::constructor.Value()) &&
+             info.Length() >= 2 && info[1].IsNumber()) {
+    vector = Vector::Unwrap(info[0].As<Object>());
+    objnum = info[1].As<Number>();
+    if (info.Length() == 3 && info[2].IsNumber()) {
+      gennum = info[2].As<Number>().Uint32Value();
+    }
+  }
 }
 
 Obj::~Obj()
 {
-  if (obj != nullptr) {
-    HandleScope scope(Env());
+  HandleScope scope(Env());
+  if (obj != nullptr)
     delete obj;
-  }
+  obj = nullptr;
+  vector = nullptr;
 }
 
 void
 Obj::Clear(const Napi::CallbackInfo& info)
 {
   try {
-    obj->Clear();
+    GetObject()->Clear();
   } catch (PdfError& err) {
     ErrorHandler(err, info);
   }
@@ -89,7 +96,7 @@ Napi::Value
 Obj::GetStream(const CallbackInfo& info)
 {
   try {
-    auto pStream = dynamic_cast<PdfMemStream*>(obj->GetStream());
+    auto pStream = dynamic_cast<PdfMemStream*>(GetObject()->GetStream());
     auto stream = pStream->Get();
     auto length = pStream->GetLength();
     auto value =
@@ -106,27 +113,27 @@ Obj::GetStream(const CallbackInfo& info)
 Napi::Value
 Obj::HasStream(const CallbackInfo& info)
 {
-  return Napi::Boolean::New(info.Env(), obj->HasStream());
+  return Napi::Boolean::New(info.Env(), GetObject()->HasStream());
 }
 
 Napi::Value
 Obj::GetObjectLength(const CallbackInfo& info)
 {
   return Napi::Number::New(info.Env(),
-                           obj->GetObjectLength(ePdfWriteMode_Default));
+                           GetObject()->GetObjectLength(ePdfWriteMode_Default));
 }
 
 Napi::Value
 Obj::GetImmutable(const CallbackInfo& info)
 {
-  return Boolean::New(info.Env(), obj->GetImmutable());
+  return Boolean::New(info.Env(), GetObject()->GetImmutable());
 }
 void
 Obj::SetImmutable(const CallbackInfo& info, const Napi::Value& value)
 {
   if (value.IsBoolean()) {
     try {
-      obj->SetImmutable(value.As<Boolean>());
+      GetObject()->SetImmutable(value.As<Boolean>());
     } catch (PdfError& err) {
       ErrorHandler(err, info);
     }
@@ -137,29 +144,29 @@ Napi::Value
 Obj::GetDataType(const CallbackInfo& info)
 {
   string js;
-  if (obj->IsArray()) {
+  if (GetObject()->IsArray()) {
     js = "Array";
-  } else if (obj->IsBool()) {
+  } else if (GetObject()->IsBool()) {
     js = "Boolean";
-  } else if (obj->IsDictionary()) {
+  } else if (GetObject()->IsDictionary()) {
     js = "Dictionary";
-  } else if (obj->IsEmpty()) {
+  } else if (GetObject()->IsEmpty()) {
     js = "Empty";
-  } else if (obj->IsHexString()) {
+  } else if (GetObject()->IsHexString()) {
     js = "HexString";
-  } else if (obj->IsNull()) {
+  } else if (GetObject()->IsNull()) {
     js = "Null";
-  } else if (obj->IsNumber()) {
+  } else if (GetObject()->IsNumber()) {
     js = "Number";
-  } else if (obj->IsName()) {
+  } else if (GetObject()->IsName()) {
     js = "Name";
-  } else if (obj->IsRawData()) {
+  } else if (GetObject()->IsRawData()) {
     js = "RawData";
-  } else if (obj->IsReal()) {
+  } else if (GetObject()->IsReal()) {
     js = "Real";
-  } else if (obj->IsReference()) {
+  } else if (GetObject()->IsReference()) {
     js = "Reference";
-  } else if (obj->IsString()) {
+  } else if (GetObject()->IsString()) {
     js = "String";
   } else {
     js = "Unknown";
@@ -179,26 +186,11 @@ Obj::Eq(const CallbackInfo& info)
   return Boolean::New(info.Env(), value->GetObject() == this->GetObject());
 }
 
-Napi::Value
-Obj::Reference(const CallbackInfo& info)
-{
-  try {
-    PdfReference init = obj->Reference();
-    auto initPtr = Napi::External<PdfReference>::New(info.Env(), &init);
-    return Ref::constructor.New({ initPtr });
-  } catch (PdfError& err) {
-    ErrorHandler(err, info);
-  } catch (Napi::Error& err) {
-    ErrorHandler(err, info);
-  }
-  return info.Env().Undefined();
-}
-
 void
 Obj::FlateCompressStream(const CallbackInfo& info)
 {
   try {
-    obj->FlateCompressStream();
+    GetObject()->FlateCompressStream();
   } catch (PdfError& err) {
     ErrorHandler(err, info);
   }
@@ -208,7 +200,7 @@ void
 Obj::DelayedStreamLoad(const CallbackInfo& info)
 {
   try {
-    obj->DelayedStreamLoad();
+    GetObject()->DelayedStreamLoad();
   } catch (PdfError& err) {
     ErrorHandler(err, info);
   }
@@ -217,40 +209,40 @@ Obj::DelayedStreamLoad(const CallbackInfo& info)
 Napi::Value
 Obj::GetNumber(const CallbackInfo& info)
 {
-  if (!obj->IsNumber()) {
+  if (!GetObject()->IsNumber()) {
     throw Napi::Error::New(info.Env(), "Obj only accessible as a number");
   }
-  return Number::New(info.Env(), obj->GetNumber());
+  return Number::New(info.Env(), GetObject()->GetNumber());
 }
 
 Napi::Value
 Obj::GetReal(const CallbackInfo& info)
 {
-  if (!obj->IsReal()) {
+  if (!GetObject()->IsReal()) {
     throw Napi::Error::New(info.Env(), "Obj only accessible as a number");
   }
 
-  return Number::New(info.Env(), obj->GetReal());
+  return Number::New(info.Env(), GetObject()->GetReal());
 }
 
 Napi::Value
 Obj::GetString(const CallbackInfo& info)
 {
-  if (!obj->IsString()) {
+  if (!GetObject()->IsString()) {
     throw Napi::Error::New(info.Env(), "Obj only accessible as a String");
   }
 
-  return String::New(info.Env(), obj->GetString().GetStringUtf8());
+  return String::New(info.Env(), GetObject()->GetString().GetStringUtf8());
 }
 
 Napi::Value
 Obj::GetName(const CallbackInfo& info)
 {
-  if (!obj->IsName()) {
+  if (!GetObject()->IsName()) {
     throw Napi::Error::New(info.Env(), "Obj only accessible as a string");
   }
   try {
-    string name = obj->GetName().GetName();
+    string name = GetObject()->GetName().GetName();
     return String::New(info.Env(), name);
   } catch (PdfError& err) {
     ErrorHandler(err, info);
@@ -261,56 +253,21 @@ Obj::GetName(const CallbackInfo& info)
 }
 
 Napi::Value
-Obj::GetArray(const CallbackInfo& info)
-{
-  if (!obj->IsArray()) {
-    throw Napi::Error::New(info.Env(), "Obj only accessible as array");
-  }
-  auto ptr = External<PdfArray>::New(info.Env(), &obj->GetArray());
-  auto instance = NoPoDoFo::Array::constructor.New({ ptr });
-  return instance;
-}
-
-Napi::Value
 Obj::GetBool(const CallbackInfo& info)
 {
-  if (!obj->IsNumber()) {
+  if (!GetObject()->IsNumber()) {
     throw Napi::Error::New(info.Env(), "Obj not accessible as a boolean");
   }
-  return Boolean::New(info.Env(), obj->GetBool());
-}
-
-Napi::Value
-Obj::GetReference(const CallbackInfo& info)
-{
-  if (!obj->IsReference()) {
-    throw Napi::Error::New(info.Env(), "Obj only accessible as Ref");
-  }
-  auto init = obj->GetReference();
-  auto ptr = External<PdfReference>::New(info.Env(), &init);
-  auto instance = Ref::constructor.New({ ptr });
-  return instance;
-}
-
-Napi::Value
-Obj::GetDictionary(const CallbackInfo& info)
-{
-  if (!obj->IsDictionary()) {
-    throw Napi::Error::New(info.Env(), "Obj only accessible as Ref");
-  }
-  auto init = obj->GetDictionary();
-  auto ptr = External<PdfDictionary>::New(info.Env(), &init);
-  auto instance = Dictionary::constructor.New({ ptr });
-  return instance;
+  return Boolean::New(info.Env(), GetObject()->GetBool());
 }
 
 Napi::Value
 Obj::GetRawData(const CallbackInfo& info)
 {
-  if (!obj->IsRawData()) {
+  if (!GetObject()->IsRawData()) {
     throw Napi::Error::New(info.Env(), "Obj not accessible as a buffer");
   }
-  string data = obj->GetRawData().data();
+  string data = GetObject()->GetRawData().data();
   return Buffer<char>::Copy(info.Env(), data.c_str(), data.length());
 }
 

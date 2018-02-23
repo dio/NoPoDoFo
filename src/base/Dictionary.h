@@ -2,7 +2,7 @@
  * This file is part of the NoPoDoFo (R) project.
  * Copyright (c) 2017-2018
  * Authors: Cory Mickelson, et al.
- * 
+ *
  * NoPoDoFo is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -19,6 +19,8 @@
 
 #ifndef NPDF_DICTIONARY_H
 #define NPDF_DICTIONARY_H
+
+#include "Obj.h"
 
 #include <napi.h>
 #include <podofo/podofo.h>
@@ -51,10 +53,13 @@ public:
   Napi::Value ToObject(const Napi::CallbackInfo&);
   Napi::Value Eq(const Napi::CallbackInfo&);
 
-  PoDoFo::PdfDictionary* GetDictionary() { return dict; }
+  PoDoFo::PdfDictionary GetDictionary()
+  {
+    return obj->GetObject()->GetDictionary();
+  }
 
 private:
-  PoDoFo::PdfDictionary* dict;
+  Obj* obj = nullptr;
 };
 }
 #endif

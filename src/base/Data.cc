@@ -22,10 +22,11 @@
 #include "../ValidateArguments.h"
 
 namespace NoPoDoFo {
+
 using namespace PoDoFo;
 using namespace Napi;
 
-FunctionReference Data::constructor;
+FunctionReference Data::constructor; // NOLINT
 
 Data::Data(const Napi::CallbackInfo& info)
   : ObjectWrap(info)
@@ -36,7 +37,7 @@ Data::Data(const Napi::CallbackInfo& info)
     string strData = info[0].As<String>().Utf8Value();
     self = new PdfData(strData.c_str());
   } else {
-    throw Napi::TypeError::New(info.Env(),
+    throw TypeError::New(info.Env(),
                                "Data requires parameter of string or external");
   }
 }

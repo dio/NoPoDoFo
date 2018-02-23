@@ -2,7 +2,7 @@
  * This file is part of the NoPoDoFo (R) project.
  * Copyright (c) 2017-2018
  * Authors: Cory Mickelson, et al.
- * 
+ *
  * NoPoDoFo is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -19,6 +19,8 @@
 
 #ifndef NPDF_OBJ_H
 #define NPDF_OBJ_H
+
+#include "Vector.h"
 
 #include <napi.h>
 #include <podofo/podofo.h>
@@ -42,27 +44,31 @@ public:
   Napi::Value GetDataType(const Napi::CallbackInfo&);
   Napi::Value GetByteOffset(const Napi::CallbackInfo&);
   Napi::Value Write(const Napi::CallbackInfo&);
-  Napi::Value Reference(const Napi::CallbackInfo&);
   void FlateCompressStream(const Napi::CallbackInfo&);
   void DelayedStreamLoad(const Napi::CallbackInfo&);
   Napi::Value GetNumber(const Napi::CallbackInfo&);
   Napi::Value GetReal(const Napi::CallbackInfo&);
   Napi::Value GetString(const Napi::CallbackInfo&);
   Napi::Value GetName(const Napi::CallbackInfo&);
-  Napi::Value GetArray(const Napi::CallbackInfo&);
   Napi::Value GetBool(const Napi::CallbackInfo&);
-  Napi::Value GetReference(const Napi::CallbackInfo&);
-  Napi::Value GetDictionary(const Napi::CallbackInfo&);
   Napi::Value GetRawData(const Napi::CallbackInfo&);
   Napi::Value GetImmutable(const Napi::CallbackInfo&);
   void SetImmutable(const Napi::CallbackInfo&, const Napi::Value&);
   void Clear(const Napi::CallbackInfo&);
   Napi::Value Eq(const Napi::CallbackInfo&);
 
-  PoDoFo::PdfObject* GetObject() { return obj; }
+  PoDoFo::PdfObject* GetObject()
+  {
+    return obj == nullptr ? vector->GetVector().GetObject(
+                              PoDoFo::PdfReference(objnum, gennum))
+                          : obj;
+  }
 
 private:
-  PoDoFo::PdfObject* obj;
+  PoDoFo::PdfObject* obj = nullptr;
+  Vector* vector = nullptr;
+  PoDoFo::pdf_objnum objnum = 0;
+  PoDoFo::pdf_gennum gennum = 0;
 };
 }
 #endif
