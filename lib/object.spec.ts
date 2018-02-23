@@ -1,9 +1,24 @@
 import {Obj} from './object'
 import {Document} from './document'
-import * as test from 'tape'
+import * as tap from 'tape'
 import {join} from 'path';
 
-test('document objects instance of nopodofo.Obj', t => {
+tap('Obj(s) getters', sub => {
+     const filePath = join(__dirname, '../test-documents/test.pdf'),
+        doc = new Document(filePath)
+
+    doc.on('ready', pdf => {
+        if (pdf instanceof Error) sub.fail('Failed to load document')
+
+        sub.test('Document Obj(s) getters', standard => {
+
+        })
+
+    })
+
+})
+
+tap('document objects instance of nopodofo.Obj', t => {
     const filePath = join(__dirname, '../test-documents/test.pdf'),
         doc = new Document(filePath)
     doc.on('ready', e => {

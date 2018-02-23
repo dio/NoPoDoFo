@@ -16,6 +16,9 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+import {NPDFInternal} from "./object";
+import {__mod, Document} from "./document";
+
 export type ProtectionOption = 'Copy' | 'Print' | 'Edit' | 'EditNotes' | 'FillAndSign' | 'Accessible' | 'DocAssembly' | 'HighPrint'
 export type EncryptOption = {
     userPassword?: string
@@ -26,6 +29,7 @@ export type EncryptOption = {
 }
 export class Encrypt {
     private _complete = true;
+    private _instance: NPDFInternal
     public get owner() {
         return this._instance.owner
     }
@@ -41,10 +45,9 @@ export class Encrypt {
     public get permission() {
         return this._instance.permission
     }
-    constructor(private _instance: any, public option?:EncryptOption) { 
-        if(_instance === null && option instanceof Object) {
-            this._complete = false;
-        }
+
+    constructor(doc:Document) {
+        this._instance = new __mod.Encrypt((doc as any)._instance)
     }
     isAllowed(action: ProtectionOption): boolean {
         if(!this._complete) {

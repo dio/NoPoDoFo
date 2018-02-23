@@ -66,7 +66,6 @@ public:
 private:
   Document* document;
   int pageIndex;
-//  PoDoFo::PdfPage* page;
   void GetFieldObject(const Napi::CallbackInfo& info,
                       Napi::Object&,
                       PoDoFo::PdfField&);

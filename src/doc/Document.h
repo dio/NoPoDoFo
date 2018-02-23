@@ -25,9 +25,11 @@
 #include <napi.h>
 #include <podofo/podofo.h>
 
-using namespace std;
 
 namespace NoPoDoFo {
+
+using namespace std;
+
 class Document : public Napi::ObjectWrap<Document>
 {
 public:
@@ -48,10 +50,13 @@ public:
   Napi::Value WriteBuffer(const Napi::CallbackInfo&);
   Napi::Value GetWriteMode(const Napi::CallbackInfo&);
   void SetEncrypt(const Napi::CallbackInfo&, const Napi::Value&);
-  Napi::Value GetObjects(const Napi::CallbackInfo&);
-  Napi::Value GetTrailer(const Napi::CallbackInfo&);
+  Napi::Value HasEncrypt(const Napi::CallbackInfo&);
   Napi::Value IsAllowed(const Napi::CallbackInfo&);
   Napi::Value CreateFont(const Napi::CallbackInfo&);
+  Napi::Value GetObjects(const Napi::CallbackInfo&);
+  Napi::Value GetTrailer(const Napi::CallbackInfo&);
+  Napi::Value GetCatalog(const Napi::CallbackInfo&);
+  void FreeObjectMemory(const Napi::CallbackInfo&);
   static Napi::Value GC(const Napi::CallbackInfo&);
 
   PoDoFo::PdfMemDocument* GetDocument() { return document; }

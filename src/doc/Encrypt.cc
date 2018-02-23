@@ -33,10 +33,14 @@ FunctionReference Encrypt::constructor; // NOLINT
 
 Encrypt::Encrypt(const Napi::CallbackInfo& info)
   : ObjectWrap(info)
+  , document(Document::Unwrap(info[0].As<Object>()))
 {
-  document = Document::Unwrap(info[0].As<Object>());
 }
-
+Encrypt::~Encrypt()
+{
+  HandleScope scope(Env());
+  document = nullptr;
+}
 void
 Encrypt::Initialize(Napi::Env& env, Napi::Object& target)
 {
@@ -159,12 +163,5 @@ Encrypt::GetKeyLength(const CallbackInfo& info)
 {
   return Number::New(info.Env(), GetEncrypt()->GetKeyLength());
 }
-Encrypt::~Encrypt()
-{
-  if (GetEncrypt() != nullptr) {
-    HandleScope scope(Env());
-    delete GetEncrypt();
-    document = nullptr;
-  }
-}
+
 }

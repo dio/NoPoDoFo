@@ -18,8 +18,9 @@
  */
 import { IFieldInfo, Field } from './field'
 import {  Rect } from './rect';
-import {  Obj } from './object';
-import { Annotation, NPDFAnnotationType, NPDFAnnotation } from './annotation';
+import {NPDFInternal, Obj} from './object';
+import { Annotation, NPDFAnnotation } from './annotation';
+import {__mod, Document} from "./document";
 
 export interface IPage {
     rotation: number
@@ -46,6 +47,7 @@ export interface IPage {
 }
 
 export class Page implements IPage {
+    private _instance: NPDFInternal
     get trimBox() {
         const trimBoxRect = this._instance.trimBox
         return new Rect([trimBoxRect.left, trimBoxRect.bottom, trimBoxRect.width, trimBoxRect.height])
@@ -89,7 +91,10 @@ export class Page implements IPage {
         this._instance.rotation = degree
     }
 
-    constructor(private _instance: any) { }
+
+    constructor(doc: Document, index: number) {
+        this._instance = new __mod.Page((doc as any)._instance, index)
+    }
 
     getContents(append: boolean): Obj {
         const objInstance = this._instance.getContents(append)

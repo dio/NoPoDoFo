@@ -2,7 +2,7 @@
  * This file is part of the NoPoDoFo (R) project.
  * Copyright (c) 2017-2018
  * Authors: Cory Mickelson, et al.
- * 
+ *
  * NoPoDoFo is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -17,20 +17,17 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 #include "Document.h"
 #include "../ErrorHandler.h"
 #include "../ValidateArguments.h"
 #include "../base/Obj.h"
-#include "Encrypt.h"
 #include "Font.h"
-#include "Page.h"
+
+namespace NoPoDoFo {
 
 using namespace Napi;
 using namespace std;
 using namespace PoDoFo;
-
-namespace NoPoDoFo {
 
 FunctionReference Document::constructor; // NOLINT
 
@@ -44,6 +41,7 @@ Document::Initialize(Napi::Env& env, Napi::Object& target)
     { // StaticMethod("gc", &Document::GC),
       InstanceAccessor("password", nullptr, &Document::SetPassword),
       InstanceAccessor("encrypt", nullptr, &Document::SetEncrypt),
+      InstanceMethod("hasEncrypt", &Document::HasEncrypt),
       InstanceMethod("load", &Document::Load),
       InstanceMethod("getPageCount", &Document::GetPageCount),
       InstanceMethod("mergeDocument", &Document::MergeDocument),
@@ -56,7 +54,9 @@ Document::Initialize(Napi::Env& env, Napi::Object& target)
       InstanceMethod("getObjects", &Document::GetObjects),
       InstanceMethod("getTrailer", &Document::GetTrailer),
       InstanceMethod("isAllowed", &Document::IsAllowed),
-      InstanceMethod("createFont", &Document::CreateFont) });
+      InstanceMethod("createFont", &Document::CreateFont),
+      InstanceMethod("getCatalog", &Document::GetCatalog),
+      InstanceMethod("freeObjectMemory", &Document::FreeObjectMemory) });
   constructor = Persistent(ctor);
   constructor.SuppressDestruct();
   target.Set("Document", ctor);
@@ -203,6 +203,12 @@ Document::GetWriteMode(const CallbackInfo& info)
     }
   }
   return Napi::String::New(info.Env(), writeMode);
+}
+
+Napi::Value
+Document::HasEncrypt(const CallbackInfo& info)
+{
+  return Boolean::New(info.Env(), document->GetEncrypt() != nullptr);
 }
 
 void
@@ -367,6 +373,25 @@ Document::GetTrailer(const CallbackInfo& info)
   auto initPtr = Napi::External<PdfObject>::New(info.Env(), ptr);
   auto instance = Obj::constructor.New({ initPtr });
   return instance;
+}
+
+Napi::Value
+Document::GetCatalog(const Napi::CallbackInfo& info)
+{
+  EscapableHandleScope scope(info.Env());
+  const PdfObject* catalog = document->GetCatalog();
+  return scope.Escape(Obj::constructor.New(
+    { External<PdfObject>::New(info.Env(), const_cast<PdfObject*>(catalog)) }));
+}
+
+void
+Document::FreeObjectMemory(const Napi::CallbackInfo& info)
+{
+  try {
+    document->FreeObjectMemory(Obj::Unwrap(info[0].As<Object>())->GetObject());
+  } catch (PdfError& err) {
+    ErrorHandler(err, info);
+  }
 }
 
 Napi::Value
