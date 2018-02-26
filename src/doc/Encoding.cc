@@ -27,13 +27,17 @@ using namespace PoDoFo;
 
 namespace NoPoDoFo {
 
-FunctionReference Encoding::constructor;
+FunctionReference Encoding::constructor; // NOLINT
 
 Encoding::Encoding(const Napi::CallbackInfo& info)
   : ObjectWrap(info)
+  , font(Font::Unwrap(info[0].As<Object>()))
 {
-  AssertFunctionArgs(info, 1, { napi_valuetype::napi_external });
-  encoding = info[0].As<External<PdfEncoding>>().Data();
+}
+Encoding::~Encoding()
+{
+  HandleScope scope(Env());
+  font = nullptr;
 }
 void
 Encoding::Initialize(Napi::Env& env, Napi::Object& target)
@@ -57,7 +61,7 @@ Encoding::AddToDictionary(const Napi::CallbackInfo& info)
   auto wrap = info[0].As<Object>();
   Dictionary* d = Dictionary::Unwrap(wrap);
   PdfDictionary dict = d->GetDictionary();
-  encoding->AddToDictionary(dict);
+  GetEncoding()->AddToDictionary(dict);
   return info.Env().Undefined();
 }
 Napi::Value
@@ -68,7 +72,7 @@ Encoding::ConvertToUnicode(const Napi::CallbackInfo& info)
   string content = info[0].As<String>().Utf8Value();
   Font* font = Font::Unwrap(info[1].As<Object>());
   PdfString buffer =
-    encoding->ConvertToUnicode(PdfString(content), font->GetPoDoFoFont());
+    GetEncoding()->ConvertToUnicode(PdfString(content), font->GetPoDoFoFont());
   return String::New(info.Env(), buffer.GetStringUtf8());
 }
 Napi::Value
@@ -79,19 +83,12 @@ Encoding::ConvertToEncoding(const Napi::CallbackInfo& info)
   string content = info[0].As<String>().Utf8Value();
   Font* font = Font::Unwrap(info[1].As<Object>());
   PdfRefCountedBuffer buffer =
-    encoding->ConvertToEncoding(PdfString(content), font->GetPoDoFoFont());
+    GetEncoding()->ConvertToEncoding(PdfString(content), font->GetPoDoFoFont());
   return String::New(info.Env(), buffer.GetBuffer());
 }
 Napi::Value
 Encoding::GetData(const Napi::CallbackInfo& info)
 {
   return info.Env().Undefined();
-}
-Encoding::~Encoding()
-{
-  if (encoding != nullptr) {
-    HandleScope scope(Env());
-    delete encoding;
-  }
 }
 }

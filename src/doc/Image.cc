@@ -21,10 +21,13 @@
 #include "../ErrorHandler.h"
 #include "../ValidateArguments.h"
 
+
+namespace NoPoDoFo {
+
 using namespace Napi;
 using namespace PoDoFo;
-namespace NoPoDoFo {
-FunctionReference Image::constructor;
+
+FunctionReference Image::constructor; // NOLINT
 
 Image::Image(const CallbackInfo& info)
   : ObjectWrap(info)
@@ -51,6 +54,14 @@ Image::Image(const CallbackInfo& info)
   throw Napi::Error::New(info.Env(),
                          "NPdf PoDoFo requires libjpeg for images.");
 #endif
+}
+Image::~Image()
+{
+  if (img != nullptr) {
+    HandleScope scope(Env());
+    delete img;
+  }
+  _doc = nullptr;
 }
 void
 Image::Initialize(Napi::Env& env, Napi::Object& target)
@@ -167,12 +178,5 @@ Image::SetInterpolate(const CallbackInfo& info)
   AssertFunctionArgs(info, 1, { napi_valuetype::napi_boolean });
   img->SetInterpolate(info[0].As<Boolean>());
 }
-Image::~Image()
-{
-  if (img != nullptr) {
-    HandleScope scope(Env());
-    delete img;
-  }
-  _doc = nullptr;
-}
+
 }

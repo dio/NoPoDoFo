@@ -2,7 +2,7 @@
  * This file is part of the NoPoDoFo (R) project.
  * Copyright (c) 2017-2018
  * Authors: Cory Mickelson, et al.
- * 
+ *
  * NoPoDoFo is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -20,21 +20,29 @@
 #ifndef NPDF_LISTBOX_H
 #define NPDF_LISTBOX_H
 
+#include "Field.h"
 #include <napi.h>
 #include <podofo/podofo.h>
 
 namespace NoPoDoFo {
 
-class ListBox: public Napi::ObjectWrap<ListBox> {
+class ListBox : public Napi::ObjectWrap<ListBox>
+{
 public:
-  explicit ListBox(const Napi::CallbackInfo &);
+  explicit ListBox(const Napi::CallbackInfo&);
+  ~ListBox();
   static Napi::FunctionReference constructor;
   static void Initialize(Napi::Env&, Napi::Object&);
 
-private:
-  std::unique_ptr<PoDoFo::PdfListBox> self;
-};
+  std::unique_ptr<PoDoFo::PdfListBox> GetField()
+  {
+    return make_unique<PoDoFo::PdfListBox>(
+      *new PoDoFo::PdfListBox(field->GetField()));
+  }
 
+private:
+  Field* field;
+};
 }
 
-#endif //NPDF_LISTBOX_H
+#endif // NPDF_LISTBOX_H

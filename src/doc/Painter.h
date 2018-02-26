@@ -23,6 +23,7 @@
 #define CONVERSION_CONSTANT 0.002834645669291339
 
 #include "Document.h"
+#include "Page.h"
 
 #include <napi.h>
 #include <podofo/podofo.h>
@@ -34,7 +35,6 @@ public:
   explicit Painter(const Napi::CallbackInfo& callbackInfo);
   ~Painter();
 
-  PoDoFo::PdfRect pageSize;
   static Napi::FunctionReference constructor;
   static void Initialize(Napi::Env& env, Napi::Object& target);
   void SetPage(const Napi::CallbackInfo&, const Napi::Value&);
@@ -98,7 +98,7 @@ public:
 
 private:
   PoDoFo::PdfPainter* painter;
-  //  PoDoFo::PdfMemDocument* document;
+  Page* page;
   Document* document;
   void GetCMYK(Napi::Value&, int* cmyk);
   void GetRGB(Napi::Value&, int* rgb);

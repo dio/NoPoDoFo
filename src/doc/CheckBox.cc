@@ -2,7 +2,7 @@
  * This file is part of the NoPoDoFo (R) project.
  * Copyright (c) 2017-2018
  * Authors: Cory Mickelson, et al.
- * 
+ *
  * NoPoDoFo is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -20,37 +20,36 @@
 #include "CheckBox.h"
 
 namespace NoPoDoFo {
-FunctionReference CheckBox::constructor;
+FunctionReference CheckBox::constructor; // NOLINT
 
 CheckBox::CheckBox(const CallbackInfo& info)
   : ObjectWrap<CheckBox>(info)
+  , field(Field::Unwrap(info[0].As<Object>()))
 {
-  if (info.Length() == 0) {
-    throw Napi::Error::New(info.Env(),
-                           "Requires a single argument of type Field");
-  }
-  auto fieldObj = info[0].As<Object>();
-  Field* field = Field::Unwrap(fieldObj);
-  PdfCheckBox v(field->GetField());
-  box = make_unique<PdfCheckBox>(v);
 }
+CheckBox::~CheckBox()
+{
+  HandleScope scope(Env());
+  field = nullptr;
+}
+void
+CheckBox::Initialize(Napi::Env& env, Napi::Object& target)
+{
+  HandleScope scope(env);
+  Function ctor =
+    DefineClass(env,
+                "CheckBox",
+                { InstanceAccessor(
+                  "checked", &CheckBox::IsChecked, &CheckBox::SetChecked) });
+  constructor = Napi::Persistent(ctor);
+  constructor.SuppressDestruct();
 
-void CheckBox::Initialize(Napi::Env &env, Napi::Object &target) {
-    HandleScope scope(env);
-    Function ctor =
-      DefineClass(env,
-                  "CheckBox",
-                  { InstanceAccessor(
-                    "checked", &CheckBox::IsChecked, &CheckBox::SetChecked) });
-    constructor = Napi::Persistent(ctor);
-    constructor.SuppressDestruct();
-
-    target.Set("CheckBox", ctor);
-  }
+  target.Set("CheckBox", ctor);
+}
 Napi::Value
 CheckBox::IsChecked(const CallbackInfo& info)
 {
-  return Napi::Boolean::New(info.Env(), box->IsChecked());
+  return Napi::Boolean::New(info.Env(), GetField()->IsChecked());
 }
 
 void
@@ -61,7 +60,6 @@ CheckBox::SetChecked(const CallbackInfo& info, const Napi::Value& value)
                                "CheckBox.checked requires boolean value");
   }
   bool checked = value.As<Boolean>();
-  box->SetChecked(checked);
+  GetField()->SetChecked(checked);
 }
-
 }

@@ -40,7 +40,7 @@ export interface IPage {
     getBleedBox(): Rect
     getArtBox(): Rect
     getNumAnnots(): number
-    createAnnotation(type: NPDFAnnotation, rect: Rect): Annotation
+    createAnnotation(type: NPDFAnnotation, rect: Rect): number
     getAnnotation(index: number): Annotation
     getAnnotations(): Array<Annotation>
     deleteAnnotation(index: number): void
@@ -139,13 +139,19 @@ export class Page implements IPage {
         }
         return fields as Array<Field>
     }
-    createAnnotation(type: NPDFAnnotation, rect: Rect):Annotation {
-        const instance = this._instance.createAnnotation((type as number), (rect as any)._instance)
-        return new Annotation(instance)
+
+    /**
+     * @desc Create a new Annotation on the page and add to the pages annots array. Returns the index of the
+     *      new Annotation. To get the annotation just created use the getAnnotation method.
+     * @param {NPDFAnnotation} type
+     * @param {Rect} rect
+     * @returns {number}
+     */
+    createAnnotation(type: NPDFAnnotation, rect: Rect): number {
+        return this._instance.createAnnotation((type as number), (rect as any)._instance) as number
     }
     getAnnotation(index: number): Annotation {
-        const instance = this._instance.getAnnotation(index)
-        return new Annotation(instance)
+        return new Annotation(this, index)
     }
     getNumAnnots(): number {
         return this._instance.getNumAnnots()
@@ -156,7 +162,7 @@ export class Page implements IPage {
         const output: Array<Annotation> = []
         for (let i = 0; i < count; i++) {
             try {
-                const item = this.getAnnotation(i);
+                const item = new Annotation(this, i);
                 output.push(item)
             } catch (e) {
                 throw e

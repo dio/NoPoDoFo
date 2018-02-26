@@ -49,35 +49,6 @@ export interface CreateFontOpts {
     fileName?: string
 }
 
-
-    getPageCount(): number
-
-    getPage(pageN: number): Page
-
-    getObjects(): Array<Obj>
-
-    mergeDocument(doc: string): void
-
-    deletePage(pageIndex: number): void
-
-    getVersion(): number
-
-    isLinearized(): boolean
-
-    write(cb: (e: Error) => void, file?: string): void
-
-    writeUpdate(device: string | Signer): void
-
-    getTrailer(): Obj
-
-    isAllowed(protection: ProtectionOption): boolean
-
-    createFont(opts: CreateFontOpts): Font
-
-    getForm(): Form
-}
-
-
 /**
  * @class Document
  * @desc Document represents a PdfMemDocument, construct from an existing pdf document.
@@ -269,6 +240,14 @@ export class Document extends EventEmitter {
     }
 
     getForm():Form {
-        return new Form(this._instance.getForm())
+        return new Form(this)
+    }
+
+    createEncrypt(opts: EncryptOption): Encrypt {
+        this._instance.encrypt = opts
+        if(this.encrypt === null) {
+            throw Error('Failed to set encrypt')
+        }
+        return this.encrypt as Encrypt
     }
 }

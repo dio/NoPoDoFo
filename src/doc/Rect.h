@@ -28,7 +28,7 @@ namespace NoPoDoFo {
 class Rect : public Napi::ObjectWrap<Rect>
 {
 public:
-  Rect(const Napi::CallbackInfo& callbackInfo);
+  explicit Rect(const Napi::CallbackInfo& callbackInfo);
   ~Rect();
   static Napi::FunctionReference constructor;
   static void Initialize(Napi::Env& env, Napi::Object& target);
@@ -42,7 +42,7 @@ public:
   void SetBottom(const Napi::CallbackInfo&, const Napi::Value&);
   Napi::Value GetLeft(const Napi::CallbackInfo&);
   void SetLeft(const Napi::CallbackInfo&, const Napi::Value&);
-  PoDoFo::PdfRect* GetRect() { return rect; }
+  PoDoFo::PdfRect& GetRect() { return *rect; }
 
 private:
   PoDoFo::PdfRect* rect = new PoDoFo::PdfRect();

@@ -2,7 +2,7 @@
  * This file is part of the NoPoDoFo (R) project.
  * Copyright (c) 2017-2018
  * Authors: Cory Mickelson, et al.
- * 
+ *
  * NoPoDoFo is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -19,28 +19,23 @@
 
 #include "TextField.h"
 
-
 namespace NoPoDoFo {
 
 using namespace Napi;
 using namespace PoDoFo;
 
-FunctionReference TextField::constructor;
+FunctionReference TextField::constructor; // NOLINT
 
 TextField::TextField(const CallbackInfo& info)
   : ObjectWrap(info)
+  , field(Field::Unwrap(info[0].As<Object>()))
 {
-  try {
-    auto fieldObj = info[0].As<Object>();
-    auto field = Field::Unwrap(fieldObj);
-    PdfTextField v(field->GetField());
-    text = make_unique<PdfTextField>(v);
-  } catch (PdfError& err) {
-    stringstream msg;
-    msg << "Failed to instantiate TextField. PoDoFo Error: " << err.GetError()
-        << endl;
-    throw Napi::Error::New(info.Env(), msg.str());
-  }
+}
+
+TextField::~TextField()
+{
+  HandleScope scope(Env());
+  field = nullptr;
 }
 
 void
@@ -65,14 +60,12 @@ TextField::SetText(const CallbackInfo& info, const Napi::Value& value)
   }
   string input = value.As<String>().Utf8Value();
   PoDoFo::PdfString v(input);
-  (*text).SetText(v);
+  GetField()->SetText(v);
 }
 
 Napi::Value
 TextField::GetText(const CallbackInfo& info)
 {
-  return Napi::String::New(info.Env(),
-      (*text).GetText().GetStringUtf8());
+  return Napi::String::New(info.Env(), GetField()->GetText().GetStringUtf8());
 }
-
 }

@@ -2,7 +2,7 @@
  * This file is part of the NoPoDoFo (R) project.
  * Copyright (c) 2017-2018
  * Authors: Cory Mickelson, et al.
- * 
+ *
  * NoPoDoFo is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -16,7 +16,6 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 
 #ifndef EXTGSTATE_H
 #define EXTGSTATE_H
@@ -45,11 +44,14 @@ public:
   void SetRenderingIntent(const Napi::CallbackInfo& info);
   void SetFrequency(const Napi::CallbackInfo& info);
 
-  PoDoFo::PdfExtGState* GetExtGState() { return self; }
+  unique_ptr<PoDoFo::PdfExtGState> GetExtGState()
+  {
+    return make_unique<PoDoFo::PdfExtGState>(
+      *new PoDoFo::PdfExtGState(doc->GetDocument()));
+  }
 
 private:
-  PoDoFo::PdfExtGState* self;
-  //  Document* doc;
+  Document* doc;
 };
 }
 #endif

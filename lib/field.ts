@@ -20,6 +20,7 @@ import {__mod, Document} from './document'
 import {NPDFInternal, Obj} from "./object";
 import {Annotation} from "./annotation";
 import {Form} from "./form";
+import {Page} from "./page";
 
 
 export interface IFieldInfo {
@@ -47,8 +48,11 @@ export type FieldType =
     | 'ListBox'
 
 export class Field {
+    private _instance: NPDFInternal
 
-    constructor(private _instance: NPDFInternal) {
+    constructor(src: Page|Field, index?: number) {
+        if(src instanceof Page && index !== null) this._instance = new __mod.Field((src as any)._instance, index)
+        else this._instance =  (src as any)._instance
     }
 
     getType(): FieldType {

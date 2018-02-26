@@ -26,13 +26,22 @@ namespace NoPoDoFo {
 using namespace Napi;
 using namespace PoDoFo;
 
-FunctionReference Form::constructor;
+FunctionReference Form::constructor; // NOLINT
 
 Form::Form(const CallbackInfo& info)
   : ObjectWrap<Form>(info)
-  , form(make_unique<PdfAcroForm>(*info[0].As<External<PdfAcroForm>>().Data()))
 {
+  doc = Document::Unwrap(info[0].As<Object>());
+  if(!doc->GetDocument()->GetAcroForm(false)) {
+    throw Error::New(info.Env(), "Acroform does not exist on document");
+  }
 }
+
+Form::~Form() {
+  HandleScope scope(Env());
+  doc = nullptr;
+}
+
 void
 Form::Initialize(Napi::Env& env, Napi::Object& target)
 {
@@ -57,22 +66,23 @@ Form::SetNeedAppearances(const CallbackInfo& info, const Napi::Value& value)
   if (!value.IsBoolean()) {
     throw Error::New(info.Env(), "requires boolean value type");
   }
-  GetForm().SetNeedAppearances(value.As<Boolean>());
+  GetForm()->SetNeedAppearances(value.As<Boolean>());
 }
 
 Napi::Value
 Form::GetNeedAppearances(const CallbackInfo& info)
 {
-  return Boolean::New(info.Env(), GetForm().GetNeedAppearances());
+  return Boolean::New(info.Env(), GetForm()->GetNeedAppearances());
 }
 
 Napi::Value
 Form::GetObject(const CallbackInfo& info)
 {
-  auto obj = GetForm().GetObject();
+  EscapableHandleScope scope(info.Env());
+  auto obj = GetForm()->GetObject();
   auto nObj = External<PdfObject>::New(info.Env(), obj);
   auto objInstance = Obj::constructor.New({ nObj });
-  return objInstance;
+  return scope.Escape(objInstance);
 }
 
 }

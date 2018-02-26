@@ -2,7 +2,7 @@
  * This file is part of the NoPoDoFo (R) project.
  * Copyright (c) 2017-2018
  * Authors: Cory Mickelson, et al.
- * 
+ *
  * NoPoDoFo is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -17,26 +17,24 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-
-
 #include "ComboBox.h"
-#include "../ValidateArguments.h"
-#include "Field.h"
 
 namespace NoPoDoFo {
 
 using namespace Napi;
 using namespace PoDoFo;
 
-FunctionReference ComboBox::constructor;
+FunctionReference ComboBox::constructor; // NOLINT
 
 ComboBox::ComboBox(const Napi::CallbackInfo& info)
   : ObjectWrap(info)
+  , field(Field::Unwrap(info[0].As<Object>()))
 {
-  AssertFunctionArgs(info, 1, { napi_object });
-  Field* nField = Field::Unwrap(info[0].As<Object>());
-  PdfComboBox v(nField->GetField());
-  self = make_unique<PdfComboBox>(v);
+}
+ComboBox::~ComboBox()
+{
+  HandleScope scope(Env());
+  field = nullptr;
 }
 
 void

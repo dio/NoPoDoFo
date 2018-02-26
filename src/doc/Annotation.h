@@ -98,7 +98,7 @@ public:
   PdfAnnotation* GetAnnotation() { return page->GetPage()->GetAnnotation(annotIndex); }
 
 private:
-  Page* page;
+  Page* page = nullptr;
   int annotIndex;
 };
 }

@@ -2,7 +2,7 @@
  * This file is part of the NoPoDoFo (R) project.
  * Copyright (c) 2017-2018
  * Authors: Cory Mickelson, et al.
- * 
+ *
  * NoPoDoFo is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -18,25 +18,24 @@
  */
 
 #include "ListField.h"
-#include "Field.h"
 
 namespace NoPoDoFo {
 
 using namespace PoDoFo;
 using namespace Napi;
 
-FunctionReference ListField::constructor;
+FunctionReference ListField::constructor; // NOLINT
 
 ListField::ListField(const CallbackInfo& info)
   : ObjectWrap(info)
+  , field(Field::Unwrap(info[0].As<Object>()))
 {
-  AssertFunctionArgs(info, 1, { napi_valuetype::napi_object });
-  auto wrap = info[0].As<Object>();
-  auto field = Field::Unwrap(wrap);
-//  auto listField = new PdfListField(field->GetField());
-  list = make_unique<PdfListField>(*new PdfListField(field->GetField()));
 }
-
+ListField::~ListField()
+{
+  HandleScope scope(Env());
+  field = nullptr;
+}
 void
 ListField::Initialize(Napi::Env& env, Napi::Object& target)
 {
@@ -63,7 +62,7 @@ ListField::InsertItem(const CallbackInfo& info)
     info, 2, { napi_valuetype::napi_string, napi_valuetype::napi_string });
   string value = info[0].As<String>().Utf8Value();
   string display = info[1].As<String>().Utf8Value();
-  list->InsertItem(PdfString(value), PdfString(display));
+  GetField()->InsertItem(PdfString(value), PdfString(display));
 }
 
 void
@@ -71,10 +70,10 @@ ListField::RemoveItem(const CallbackInfo& info)
 {
   AssertFunctionArgs(info, 1, { napi_valuetype::napi_number });
   int index = info[0].As<Number>();
-  if (static_cast<size_t>(index) > list->GetItemCount() || index < 0) {
+  if (static_cast<size_t>(index) > GetField()->GetItemCount() || index < 0) {
     throw Napi::Error::New(info.Env(), "index out of range");
   }
-  list->RemoveItem(index);
+  GetField()->RemoveItem(index);
 }
 
 Napi::Value
@@ -83,8 +82,8 @@ ListField::GetItem(const CallbackInfo& info)
   AssertFunctionArgs(info, 1, { napi_valuetype::napi_number });
   int index = info[0].As<Number>();
   Object item = Object::New(info.Env());
-  string value = list->GetItem(index).GetString();
-  string display = list->GetItemDisplayText(index).GetString();
+  string value = GetField()->GetItem(index).GetString();
+  string display = GetField()->GetItemDisplayText(index).GetString();
   item.Set(String::New(info.Env(), "value"), String::New(info.Env(), value));
   item.Set(String::New(info.Env(), "display"),
            String::New(info.Env(), display));
@@ -94,7 +93,7 @@ ListField::GetItem(const CallbackInfo& info)
 Napi::Value
 ListField::GetItemCount(const CallbackInfo& info)
 {
-  return Number::New(info.Env(), list->GetItemCount());
+  return Number::New(info.Env(), GetField()->GetItemCount());
 }
 
 void
@@ -103,14 +102,13 @@ ListField::SetSelectedItem(const CallbackInfo& info, const Napi::Value& value)
   if (!value.IsNumber()) {
     throw Napi::Error::New(info.Env(), "index must be of type number");
   }
-  list->SetSelectedItem(value.As<Number>());
+  GetField()->SetSelectedItem(value.As<Number>());
 }
 
 Napi::Value
 ListField::GetSelectedItem(const CallbackInfo& info)
 {
-  int index = list->GetSelectedItem();
+  int index = GetField()->GetSelectedItem();
   return Number::New(info.Env(), index);
 }
-
 }

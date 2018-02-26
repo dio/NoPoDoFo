@@ -24,6 +24,7 @@
 
 #include <napi.h>
 #include <podofo/podofo.h>
+#include "Font.h"
 
 namespace NoPoDoFo {
 class Encoding: public Napi::ObjectWrap<Encoding> {
@@ -37,8 +38,10 @@ public:
   Napi::Value ConvertToEncoding(const Napi::CallbackInfo &);
   Napi::Value GetData(const Napi::CallbackInfo &);
 
+  const PoDoFo::PdfEncoding* GetEncoding() { return font->GetPoDoFoFont()->GetEncoding(); }
+
 private:
-  PoDoFo::PdfEncoding *encoding;
+  Font* font;
 };
 }
 #endif //NPDF_ENCODING_H

@@ -120,25 +120,13 @@ Painter::SetPage(const Napi::CallbackInfo& info, const Napi::Value& value)
   if (!value.IsObject()) {
     throw Napi::Error::New(info.Env(), "Page must be an instance of Page.");
   }
-  auto pageObj = value.As<Object>();
-  Page* pagePtr = Page::Unwrap(pageObj);
-  if (!pageObj.InstanceOf(Page::constructor.Value())) {
-    throw Napi::Error::New(info.Env(), "Page must be an instance of Page.");
-  }
-  PoDoFo::PdfPage* page = pagePtr->GetPage();
-  //  document = pagePtr->GetDocument();
-  painter->SetPage(page);
-  pageSize = page->GetPageSize();
+  page = Page::Unwrap(value.As<Object>());
+  painter->SetPage(page->GetPage());
 }
 Napi::Value
 Painter::GetPage(const CallbackInfo& info)
 {
-  auto* page = dynamic_cast<PdfPage*>(painter->GetPage());
-  auto pagePtr = Napi::External<PdfPage>::New(info.Env(), page);
-  auto docPtr =
-    Napi::External<PdfMemDocument>::New(info.Env(), document->GetDocument());
-  auto instance = Page::constructor.New({ pagePtr, docPtr });
-  return instance;
+  return page->Value();
 }
 
 void
@@ -262,7 +250,7 @@ Painter::DrawMultiLineText(const CallbackInfo& info)
                        napi_number,
                        napi_boolean,
                        napi_boolean });
-  PdfRect rect = *Rect::Unwrap(info[0].As<Object>())->GetRect();
+  PdfRect rect = Rect::Unwrap(info[0].As<Object>())->GetRect();
   string text = info[1].As<String>().Utf8Value();
   EPdfAlignment alignment =
     static_cast<EPdfAlignment>(info[2].As<Number>().Int32Value());
@@ -383,15 +371,16 @@ Painter::SetFont(const Napi::CallbackInfo& info, const Napi::Value& value)
 Napi::Value
 Painter::GetFont(const Napi::CallbackInfo& info)
 {
-  return Font::constructor.New(
-    { External<PdfFont>::New(info.Env(), painter->GetFont()) });
+  EscapableHandleScope scope(info.Env());
+  return scope.Escape( Font::constructor.New(
+    { External<PdfFont>::New(info.Env(), painter->GetFont()) }));
 }
 void
 Painter::SetClipRect(const Napi::CallbackInfo& info)
 {
   AssertFunctionArgs(info, 1, { napi_valuetype::napi_object });
   Rect* r = Rect::Unwrap(info[0].As<Object>());
-  painter->SetClipRect(*r->GetRect());
+  painter->SetClipRect(r->GetRect());
 }
 
 void
@@ -408,7 +397,7 @@ Painter::Rectangle(const CallbackInfo& info)
   AssertFunctionArgs(info, 1, { napi_valuetype::napi_object });
   Rect* r = Rect::Unwrap(info[0].As<Object>());
   try {
-    painter->Rectangle(*r->GetRect());
+    painter->Rectangle(r->GetRect());
   } catch (PdfError& err) {
     ErrorHandler(err, info);
   }
@@ -685,7 +674,7 @@ Painter::SetExtGState(const CallbackInfo& info)
   }
   ExtGState* state = ExtGState::Unwrap(wrap);
   try {
-    painter->SetExtGState(state->GetExtGState());
+    painter->SetExtGState(state->GetExtGState().get());
   } catch (PdfError& err) {
     ErrorHandler(err, info);
   }

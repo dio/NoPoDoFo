@@ -19,31 +19,22 @@
 
 #include "Rect.h"
 
+
+namespace NoPoDoFo {
+
 using namespace Napi;
 using namespace PoDoFo;
-namespace NoPoDoFo {
-FunctionReference Rect::constructor;
+
+FunctionReference Rect::constructor; // NOLINT
 
 Rect::Rect(const CallbackInfo& info)
   : ObjectWrap(info)
 {
-  if (info.Length() == 0) {
-    rect = new PoDoFo::PdfRect();
+  if (info.Length() == 1 && info[0].Type() == napi_external) {
+    const PdfRect* rectPtr = info[0].As<External<PdfRect>>().Data();
+    rect = new PdfRect(*rectPtr);
   }
-  if (info.Length() == 1) {
-    if (!info[0].IsObject()) {
-      throw Error::New(info.Env(),
-                       "Rect requires Page as constructor parameter");
-    }
-    auto pageObj = info[0].As<Object>();
-    if (!pageObj.InstanceOf(Page::constructor.Value())) {
-      throw Error::New(info.Env(),
-                       "Rect requires Page as constructor parameter");
-    }
-    Page* page = Page::Unwrap(pageObj);
-    rect = new PdfRect(page->GetPage()->GetPageSize());
-  }
-  if (info.Length() == 4) {
+  else if (info.Length() == 4) {
     double left, bottom, width, height;
     for (uint8_t i = 0; i < info.Length(); i++) {
       if (!info[i].IsNumber()) {
@@ -59,12 +50,12 @@ Rect::Rect(const CallbackInfo& info)
     rect = new PoDoFo::PdfRect(left, bottom, width, height);
   }
 }
-
 Rect::~Rect()
 {
   if (rect != nullptr) {
     HandleScope scope(Env());
     delete rect;
+    rect = nullptr;
   }
 }
 void
@@ -94,9 +85,7 @@ Rect::Intersect(const CallbackInfo& info)
                            "Intersect requires a single argument of type Rect");
   }
   auto rectObj = info[0].As<Object>();
-  Rect* rectIntersect = Rect::Unwrap(rectObj);
-  PdfRect* _rect = rectIntersect->GetRect();
-  rect->Intersect(*_rect);
+  rect->Intersect(Rect::Unwrap(rectObj)->GetRect());
 }
 Napi::Value
 Rect::GetWidth(const CallbackInfo& info)

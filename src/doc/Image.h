@@ -27,7 +27,7 @@ namespace NoPoDoFo {
 class Image : public Napi::ObjectWrap<Image>
 {
 public:
-  Image(const Napi::CallbackInfo&);
+  explicit Image(const Napi::CallbackInfo&);
   ~Image();
 
   static Napi::FunctionReference constructor;
@@ -38,7 +38,7 @@ public:
   void LoadFromBuffer(const Napi::CallbackInfo&);
   Napi::Value IsLoaded(const Napi::CallbackInfo&);
   void SetInterpolate(const Napi::CallbackInfo&);
-  PoDoFo::PdfImage GetImage() { return *img; }
+  PoDoFo::PdfImage& GetImage() { return *img; }
 
 private:
   Document* _doc;

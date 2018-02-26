@@ -34,7 +34,7 @@ doc.on('ready', async e => {
 
         const rect = new Rect([0, 0, 10, 10]),
             page = doc.getPage(1),
-            annot = page.createAnnotation(NPDFAnnotation.Widget, rect)
+            annot = page.getAnnotation(page.createAnnotation(NPDFAnnotation.Widget, rect))
         annot.flag = NPDFAnnotationFlag.Hidden | NPDFAnnotationFlag.Invisible
         const field = new SignatureField(annot, doc),
             signatureData = signature(join(__dirname, '../test-documents/certificate.pem'), join(__dirname, '../test-documents/key.pem'))

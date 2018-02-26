@@ -23,7 +23,7 @@ using namespace Napi;
 using namespace PoDoFo;
 
 namespace NoPoDoFo {
-FunctionReference FileSpec::constructor;
+FunctionReference FileSpec::constructor; // NOLINT
 
 void
 FileSpec::Initialize(Napi::Env& env, Napi::Object& target)

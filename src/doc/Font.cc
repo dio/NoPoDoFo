@@ -23,18 +23,25 @@
 #include "../base/Stream.h"
 #include "Encoding.h"
 
-using namespace PoDoFo;
 
 namespace NoPoDoFo {
-FunctionReference Font::constructor;
+
+using namespace PoDoFo;
+
+FunctionReference Font::constructor; // NOLINT
 
 Font::Font(const Napi::CallbackInfo& info)
   : ObjectWrap(info)
+  , font(info[0].As<External<PdfFont>>().Data())
 {
-  AssertFunctionArgs(info, 1, { napi_valuetype::napi_external });
-  font = info[0].As<External<PdfFont>>().Data();
 }
 
+Font::~Font()
+{
+  Napi::HandleScope scope(Env());
+  delete font;
+  font = nullptr;
+}
 void
 Font::Initialize(Napi::Env& env, Napi::Object& target)
 {
@@ -148,9 +155,8 @@ Font::GetIdentifier(const Napi::CallbackInfo& info)
 Napi::Value
 Font::GetEncoding(const Napi::CallbackInfo& info)
 {
-  const PdfEncoding* encoding = font->GetEncoding();
-  return Encoding::constructor.New({ External<PdfEncoding>::New(
-    info.Env(), const_cast<PdfEncoding*>(encoding)) });
+  EscapableHandleScope scope(info.Env());
+  return scope.Escape(Encoding::constructor.New({ this->Value() }));
 }
 Napi::Value
 Font::GetFontMetric(const Napi::CallbackInfo& info)
@@ -228,10 +234,5 @@ Font::EmbedFont(const Napi::CallbackInfo& info)
     ErrorHandler(err, info);
   }
 }
-Font::~Font()
-{
-  Napi::HandleScope scope(Env());
-  font = nullptr;
-  delete font;
-}
+
 }

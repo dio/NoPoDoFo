@@ -30,15 +30,16 @@ class Form : public Napi::ObjectWrap<Form>
 {
 public:
   explicit Form(const Napi::CallbackInfo&);
+  ~Form();
   static Napi::FunctionReference constructor;
   static void Initialize(Napi::Env&, Napi::Object&);
   void SetNeedAppearances(const Napi::CallbackInfo&, const Napi::Value&);
   Napi::Value GetNeedAppearances(const Napi::CallbackInfo&);
   Napi::Value GetObject(const Napi::CallbackInfo&);
-  PoDoFo::PdfAcroForm& GetForm() { return *form; }
+  PoDoFo::PdfAcroForm * GetForm() { return doc->GetDocument()->GetAcroForm(); }
 
 private:
-  std::unique_ptr<PoDoFo::PdfAcroForm> form;
+  Document* doc;
 };
 }
 #endif

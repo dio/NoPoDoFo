@@ -23,6 +23,7 @@
 #include "../ErrorHandler.h"
 #include "../ValidateArguments.h"
 #include "../base/Obj.h"
+#include "Form.h"
 #include "Font.h"
 
 namespace NoPoDoFo {
@@ -494,18 +495,6 @@ Document::CreateFont(const CallbackInfo& info)
     return Font::constructor.New({ External<PdfFont>::New(info.Env(), font) });
   } catch (PdfError& err) {
     ErrorHandler(err, info);
-  }
-}
-
-Napi::Value
-Document::GetForm(const CallbackInfo& info) {
-  if(!document->GetAcroForm(false)) {
-    return info.Env().Undefined();
-  } else {
-    EscapableHandleScope scope(info.Env());
-    PdfAcroForm* form = document->GetAcroForm();
-    auto instance = Form::constructor.New({External<PdfAcroForm>::New(info.Env(), form)});
-    return scope.Escape(instance);
   }
 }
 

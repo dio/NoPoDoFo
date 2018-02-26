@@ -2,7 +2,7 @@
  * This file is part of the NoPoDoFo (R) project.
  * Copyright (c) 2017-2018
  * Authors: Cory Mickelson, et al.
- * 
+ *
  * NoPoDoFo is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -17,26 +17,31 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-
-
 #ifndef NPDF_COMBOBOX_H
 #define NPDF_COMBOBOX_H
 
+#include "Field.h"
 #include <napi.h>
 #include <podofo/podofo.h>
 
 namespace NoPoDoFo {
-class ComboBox : public Napi::ObjectWrap<ComboBox> {
+class ComboBox : public Napi::ObjectWrap<ComboBox>
+{
 public:
-    explicit ComboBox(const Napi::CallbackInfo &);
+  explicit ComboBox(const Napi::CallbackInfo&);
+  ~ComboBox();
   static Napi::FunctionReference constructor;
   static void Initialize(Napi::Env&, Napi::Object&);
 
+  std::unique_ptr<PoDoFo::PdfComboBox> GetField()
+  {
+    return make_unique<PoDoFo::PdfComboBox>(
+      *new PoDoFo::PdfComboBox(field->GetField()));
+  }
+
 private:
-    std::unique_ptr<PoDoFo::PdfComboBox> self;
+  Field* field;
 };
 }
 
-
-
-#endif //NPDF_COMBOBOX_H
+#endif // NPDF_COMBOBOX_H

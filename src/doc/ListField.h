@@ -2,7 +2,7 @@
  * This file is part of the NoPoDoFo (R) project.
  * Copyright (c) 2017-2018
  * Authors: Cory Mickelson, et al.
- * 
+ *
  * NoPoDoFo is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -25,11 +25,15 @@
 #include <napi.h>
 #include <podofo/podofo.h>
 #include <string>
+
+
 namespace NoPoDoFo {
+
 class ListField : public Napi::ObjectWrap<ListField>
 {
 public:
   explicit ListField(const CallbackInfo& info);
+  ~ListField();
   static Napi::FunctionReference constructor;
   static void Initialize(Napi::Env& env, Napi::Object& target);
   void InsertItem(const Napi::CallbackInfo&);
@@ -39,8 +43,14 @@ public:
   void SetSelectedItem(const Napi::CallbackInfo&, const Napi::Value&);
   Napi::Value GetSelectedItem(const Napi::CallbackInfo&);
 
+  unique_ptr<PoDoFo::PdfListField> GetField()
+  {
+    return make_unique<PoDoFo::PdfListField>(
+      *new PoDoFo::PdfListField(field->GetField()));
+  }
+
 private:
-  std::unique_ptr<PoDoFo::PdfListField> list;
+  Field* field;
 };
 }
 #endif

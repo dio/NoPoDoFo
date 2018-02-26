@@ -34,6 +34,7 @@
   "devDependencies": {
     "@types/node": "^8.0.47",
     "@types/tape": "^4.2.31",
+    "@types/uuid": "^3.4.3",
     "husky": "^0.14.3",
     "tape": "^4.8.0",
     "typescript": "~2.5.3"

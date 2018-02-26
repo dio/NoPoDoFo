@@ -17,9 +17,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 import {Document, __mod} from './document'
-import {Obj} from "./object";
+import {NPDFInternal, Obj} from "./object";
 
 export class Form {
+    private _instance: NPDFInternal
 
     get needAppearances() {return this._instance.needAppearances}
     set needAppearances(value:boolean) {this._instance.needAppearances = value}

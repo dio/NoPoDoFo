@@ -4,7 +4,7 @@ import * as tap from 'tape'
 import {Document, FontEncoding} from './document'
 import {EncryptOption} from './encrypt'
 import {F_OK} from "constants";
-import v4 = require("uuid/v4");
+import {v4} from 'uuid'
 import {Test} from "tape";
 
 const filePath = join(__dirname, '../test-documents/test.pdf'),

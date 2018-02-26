@@ -2,7 +2,7 @@
  * This file is part of the NoPoDoFo (R) project.
  * Copyright (c) 2017-2018
  * Authors: Cory Mickelson, et al.
- * 
+ *
  * NoPoDoFo is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -17,8 +17,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-
-
 #ifndef NPDF_CHECKBOX_H
 #define NPDF_CHECKBOX_H
 
@@ -26,21 +24,27 @@
 #include <napi.h>
 #include <podofo/podofo.h>
 
+namespace NoPoDoFo {
+
 using namespace Napi;
 using namespace PoDoFo;
 
-namespace NoPoDoFo {
 class CheckBox : public ObjectWrap<CheckBox>
 {
 public:
   explicit CheckBox(const CallbackInfo& callbackInfo);
+  ~CheckBox();
   static Napi::FunctionReference constructor;
   static void Initialize(Napi::Env& env, Napi::Object& target);
   Napi::Value IsChecked(const CallbackInfo&);
   void SetChecked(const CallbackInfo&, const Napi::Value&);
+  unique_ptr<PdfCheckBox> GetField()
+  {
+    return make_unique<PdfCheckBox>(*new PdfCheckBox(field->GetField()));
+  }
 
 private:
-  std::unique_ptr<PdfCheckBox> box;
+  Field* field;
 };
 }
 #endif // NPDF_CHECKBOX_H

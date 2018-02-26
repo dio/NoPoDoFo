@@ -26,10 +26,13 @@
 #include "../doc/Form.h"
 #include "Signer.h"
 
+
+namespace NoPoDoFo {
+
 using namespace Napi;
 using namespace PoDoFo;
-namespace NoPoDoFo {
-FunctionReference SignatureField::constructor;
+
+FunctionReference SignatureField::constructor; // NOLINT
 
 SignatureField::SignatureField(const CallbackInfo& info)
   : ObjectWrap<SignatureField>(info)
@@ -41,7 +44,7 @@ SignatureField::SignatureField(const CallbackInfo& info)
       auto annot = Annotation::Unwrap(info[0].As<Object>());
       auto doc = Document::Unwrap(info[1].As<Object>())->GetDocument();
       auto form = doc->GetAcroForm();
-      field = new PdfSignatureField(&annot->GetAnnotation(), form, doc);
+      field = new PdfSignatureField(annot->GetAnnotation(), form, doc);
 
     } else if (info.Length() == 1) {
       AssertFunctionArgs(info, 1, { napi_valuetype::napi_external });

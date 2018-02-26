@@ -2,7 +2,7 @@
  * This file is part of the NoPoDoFo (R) project.
  * Copyright (c) 2017-2018
  * Authors: Cory Mickelson, et al.
- * 
+ *
  * NoPoDoFo is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -16,22 +16,33 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { Page } from './page'
-import { Rect } from './rect'
-import { NPDFrgb } from './painter';
+import {Page} from './page'
+import {Rect} from './rect'
+import {NPDFrgb} from './painter';
+import {NPDFInternal} from "./object";
+import {__mod} from "./document";
+import {type} from "os";
 
 export interface IAnnotation {
     title: string
     flag: number
     color: NPDFrgb
+
     hasAppearanceStream(): boolean
+
     setBorderStyle(horizontalRadius: number, verticalRadius: number, width: number): void
+
     hasDestination(): boolean
+
     hasAction(): boolean
+
     getType(): NPDFAnnotationType
+
     setFileAttachment(): void
+
     hasFileAttachment(): boolean
 }
+
 export enum NPDFAnnotationType {
     Text = 'Text',
     Link = 'Link',
@@ -61,6 +72,7 @@ export enum NPDFAnnotationType {
     RichMedia = 'RichMedia',
     WebMedia = 'WebMedia'
 }
+
 export enum NPDFAnnotation {
     Text = 0,                   // - supported
     Link,                       // - supported
@@ -125,31 +137,42 @@ export enum NPDFAction {
     GoTo3DView,
     RichMediaExecute,
 }
+
 /**
  * @desc Red, Green, Blue
  */
 export class Annotation {
+
+    private _instance: NPDFInternal
+
     get quadPoints() {
         throw Error("unimplemented")
     }
-    set quadPoints(value:Array<number>) {
+
+    set quadPoints(value: Array<number>) {
         throw Error("unimplemented")
     }
+
     get title() {
         return this._instance.title
     }
-    set title(value:string) {
+
+    set title(value: string) {
         this._instance.title = value
     }
+
     get flag(): NPDFAnnotationFlag {
         return this._instance.flag
     }
+
     set flag(value: NPDFAnnotationFlag) {
         this._instance.flag = value
     }
+
     get color() {
         return this._instance.color
     }
+
     set color(value: NPDFrgb) {
         let rgbErr = Error("RGB value must be an integer >= 0 || <= 256")
         if (value.length !== 3) {
@@ -166,26 +189,34 @@ export class Annotation {
         this._instance.color = value
     }
 
-    constructor(private _instance:any) {}
+    constructor(page: Page, index: number) {
+        this._instance = new __mod.Annotation((page as any)._instance, index)
+    }
 
     hasAppearanceStream(): boolean {
         return this._instance.hasAppearanceStream()
     }
+
     setBorderStyle(horizontalRadius: number, verticalRadius: number, width: number): void {
         return this._instance.setBorderStyle(horizontalRadius, verticalRadius, width)
     }
+
     hasDestination(): boolean {
         return this._instance.hasDestination()
     }
+
     hasAction(): boolean {
         return this._instance.hasAction()
     }
+
     getType(): NPDFAnnotationType {
         return this._instance.getType()
     }
+
     setFileAttachment(): void {
         throw new Error("Method not implemented.");
     }
+
     hasFileAttachment(): boolean {
         return this._instance.hasFileAttachment()
     }

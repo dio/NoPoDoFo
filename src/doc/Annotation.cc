@@ -22,9 +22,6 @@
 
 namespace NoPoDoFo {
 
-using namespace PoDoFo;
-using namespace Napi;
-
 FunctionReference Annotation::constructor; // NOLINT
 
 Annotation::Annotation(const CallbackInfo& info)
