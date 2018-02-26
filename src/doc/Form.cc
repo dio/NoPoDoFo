@@ -19,25 +19,19 @@
 
 #include "Form.h"
 #include "../base/Obj.h"
-#include "Document.h"
+
+
+namespace NoPoDoFo {
 
 using namespace Napi;
 using namespace PoDoFo;
 
-namespace NoPoDoFo {
 FunctionReference Form::constructor;
 
-Form::Form(const Napi::CallbackInfo& info)
+Form::Form(const CallbackInfo& info)
   : ObjectWrap<Form>(info)
+  , form(make_unique<PdfAcroForm>(*info[0].As<External<PdfAcroForm>>().Data()))
 {
-  if (info.Length() != 1) {
-    throw Napi::Error::New(info.Env(), "Form requires document parameter");
-  }
-  Object docObj = info[0].As<Object>();
-  doc = Document::Unwrap(docObj);
-  if (!doc->GetDocument()->GetAcroForm()) {
-    throw Napi::Error::New(info.Env(), "Null Form");
-  }
 }
 void
 Form::Initialize(Napi::Env& env, Napi::Object& target)
@@ -49,7 +43,7 @@ Form::Initialize(Napi::Env& env, Napi::Object& target)
                                 InstanceAccessor("needAppearances",
                                                  &Form::GetNeedAppearances,
                                                  &Form::SetNeedAppearances) });
-  constructor = Napi::Persistent(ctor);
+  constructor = Persistent(ctor);
   constructor.SuppressDestruct();
 
   target.Set("Form", ctor);
@@ -58,33 +52,27 @@ void
 Form::SetNeedAppearances(const CallbackInfo& info, const Napi::Value& value)
 {
   if (value.IsEmpty()) {
-    throw Napi::Error::New(info.Env(), "value required");
+    throw Error::New(info.Env(), "value required");
   }
   if (!value.IsBoolean()) {
-    throw Napi::Error::New(info.Env(), "requires boolean value type");
+    throw Error::New(info.Env(), "requires boolean value type");
   }
-  GetForm()->SetNeedAppearances(value.As<Boolean>());
+  GetForm().SetNeedAppearances(value.As<Boolean>());
 }
 
 Napi::Value
 Form::GetNeedAppearances(const CallbackInfo& info)
 {
-  return Napi::Boolean::New(info.Env(), GetForm()->GetNeedAppearances());
+  return Boolean::New(info.Env(), GetForm().GetNeedAppearances());
 }
 
 Napi::Value
 Form::GetObject(const CallbackInfo& info)
 {
-  auto obj = GetForm()->GetObject();
-  auto nObj = Napi::External<PdfObject>::New(info.Env(), obj);
+  auto obj = GetForm().GetObject();
+  auto nObj = External<PdfObject>::New(info.Env(), obj);
   auto objInstance = Obj::constructor.New({ nObj });
   return objInstance;
 }
-Form::~Form()
-{
-  if (doc != nullptr) {
-    HandleScope scope(Env());
-    doc = nullptr;
-  }
-}
+
 }

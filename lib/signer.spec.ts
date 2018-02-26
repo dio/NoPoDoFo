@@ -17,7 +17,7 @@ doc.on('ready', async e => {
     if (e instanceof Error) throw e
     try {
         // check for form
-        let form = new Form(doc),
+        let form = doc.getForm(),
             formDict = form.getObject().asObject()
         if (!formDict['SigFlags'] ||
             formDict['SigFlags'].type !== 'Number' ||
@@ -36,7 +36,7 @@ doc.on('ready', async e => {
             page = doc.getPage(1),
             annot = page.createAnnotation(NPDFAnnotation.Widget, rect)
         annot.flag = NPDFAnnotationFlag.Hidden | NPDFAnnotationFlag.Invisible
-        const field = new SignatureField(annot, form, doc),
+        const field = new SignatureField(annot, doc),
             signatureData = signature(join(__dirname, '../test-documents/certificate.pem'), join(__dirname, '../test-documents/key.pem'))
         field.setReason('test')
         field.setLocation('here')

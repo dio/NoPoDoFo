@@ -23,6 +23,7 @@ import {Encrypt, EncryptOption, ProtectionOption} from './encrypt';
 import {EventEmitter} from 'events';
 import {Font} from "./painter";
 import {Signer} from './signer';
+import { Form } from './form';
 
 export const __mod = require('bindings')('npdf')
 
@@ -46,6 +47,34 @@ export interface CreateFontOpts {
     encoding?: FontEncoding,
     embed?: boolean,
     fileName?: string
+}
+
+
+    getPageCount(): number
+
+    getPage(pageN: number): Page
+
+    getObjects(): Array<Obj>
+
+    mergeDocument(doc: string): void
+
+    deletePage(pageIndex: number): void
+
+    getVersion(): number
+
+    isLinearized(): boolean
+
+    write(cb: (e: Error) => void, file?: string): void
+
+    writeUpdate(device: string | Signer): void
+
+    getTrailer(): Obj
+
+    isAllowed(protection: ProtectionOption): boolean
+
+    createFont(opts: CreateFontOpts): Font
+
+    getForm(): Form
 }
 
 
@@ -239,11 +268,7 @@ export class Document extends EventEmitter {
         else this._instance.writeUpdate(device)
     }
 
-    createEncrypt(opts: EncryptOption): Encrypt {
-        this._instance.encrypt = opts
-        if(this.encrypt === null) {
-            throw Error('Failed to set encrypt')
-        }
-        return this.encrypt as Encrypt
+    getForm():Form {
+        return new Form(this._instance.getForm())
     }
 }

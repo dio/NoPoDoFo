@@ -285,8 +285,8 @@ protected:
   void Execute() override
   {
     try {
-      auto o = const_cast<PdfObject*>(obj->GetObject());
-      value = o->GetByteOffset(arg.c_str(), ePdfWriteMode_Default);
+      value =
+        obj->GetObject().GetByteOffset(arg.c_str(), ePdfWriteMode_Default);
     } catch (PdfError& err) {
       SetError(ErrorHandler::WriteMsg(err));
     } catch (Napi::Error& err) {
@@ -332,7 +332,7 @@ protected:
   {
     try {
       PdfOutputDevice device(arg.c_str());
-      obj->GetObject()->WriteObject(&device, ePdfWriteMode_Default, nullptr);
+      obj->GetObject().WriteObject(&device, ePdfWriteMode_Default, nullptr);
     } catch (PdfError& err) {
       SetError(ErrorHandler::WriteMsg(err));
     } catch (Napi::Error& err) {

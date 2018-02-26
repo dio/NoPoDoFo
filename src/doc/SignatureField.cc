@@ -2,7 +2,7 @@
  * This file is part of the NoPoDoFo (R) project.
  * Copyright (c) 2017-2018
  * Authors: Cory Mickelson, et al.
- * 
+ *
  * NoPoDoFo is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -35,17 +35,13 @@ SignatureField::SignatureField(const CallbackInfo& info)
   : ObjectWrap<SignatureField>(info)
 {
   try {
-    if (info.Length() == 3) {
-      AssertFunctionArgs(info,
-                         3,
-                         { napi_valuetype::napi_object,
-                           napi_valuetype::napi_object,
-                           napi_valuetype::napi_object });
+    if (info.Length() == 2) {
+      AssertFunctionArgs(
+        info, 2, { napi_valuetype::napi_object, napi_valuetype::napi_object });
       auto annot = Annotation::Unwrap(info[0].As<Object>());
-      auto form = Form::Unwrap(info[1].As<Object>());
-      auto doc = Document::Unwrap(info[2].As<Object>());
-      field = new PdfSignatureField(
-        annot->GetAnnotation(), form->GetForm(), doc->GetDocument());
+      auto doc = Document::Unwrap(info[1].As<Object>())->GetDocument();
+      auto form = doc->GetAcroForm();
+      field = new PdfSignatureField(&annot->GetAnnotation(), form, doc);
 
     } else if (info.Length() == 1) {
       AssertFunctionArgs(info, 1, { napi_valuetype::napi_external });
@@ -150,6 +146,7 @@ SignatureField::~SignatureField()
 {
   HandleScope scope(Env());
   delete field;
-  delete signatureBuffer;
+  if (signatureBuffer != nullptr)
+    delete signatureBuffer;
 }
 }

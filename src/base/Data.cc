@@ -2,7 +2,7 @@
  * This file is part of the NoPoDoFo (R) project.
  * Copyright (c) 2017-2018
  * Authors: Cory Mickelson, et al.
- * 
+ *
  * NoPoDoFo is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -32,7 +32,8 @@ Data::Data(const Napi::CallbackInfo& info)
   : ObjectWrap(info)
 {
   if (info.Length() == 1 && info[0].Type() == napi_external) {
-    self = info[0].As<External<PdfData>>().Data();
+    PdfData* copy = info[0].As<External<PdfData>>().Data();
+    self = new PdfData(*copy);
   } else if (info.Length() == 1 && info[0].IsString()) {
     string strData = info[0].As<String>().Utf8Value();
     self = new PdfData(strData.c_str());

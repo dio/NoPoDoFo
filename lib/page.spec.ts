@@ -206,7 +206,7 @@ function pageAddImg() {
 
 function runTest(test: Function) {
     setImmediate(() => {
-        global.gc()
+        //global.gc()
         test()
     })
 }

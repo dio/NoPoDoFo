@@ -20,7 +20,6 @@ import {Document, __mod} from './document'
 import {Obj} from "./object";
 
 export class Form {
-    private _instance:any
 
     get needAppearances() {return this._instance.needAppearances}
     set needAppearances(value:boolean) {this._instance.needAppearances = value}
