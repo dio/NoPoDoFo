@@ -127,15 +127,15 @@ export class Page implements IPage {
         return this._instance.getFieldIndex(fieldName)
     }
     getField(index: number): Field {
-        // return new Field(this, index)
-        return new Field(this._instance.getField(index))
+        return new Field(this, index)
+        // return new Field(this._instance.getField(index))
     }
     getFields(): Array<Field> {
         const fields = []
         const count = this.getNumFields();
         let i = 0;
         for (; i < count; i++) {
-            fields[i] = ((new Field(this._instance.getField(i))) as any)
+            fields[i] = new Field(this, i)
         }
         return fields as Array<Field>
     }

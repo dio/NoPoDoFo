@@ -28,10 +28,6 @@
 
 namespace NoPoDoFo {
 
-using namespace std;
-using namespace Napi;
-using namespace PoDoFo;
-
 class Page : public Napi::ObjectWrap<Page>
 {
 public:

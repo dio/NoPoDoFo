@@ -309,7 +309,7 @@ export class Obj implements NObj {
     }
 
     asObject(): { [key: string]: Obj } {
-        const internal: NPDFInternal = this._instance.getDictionary()
+        const internal: NPDFInternal = new __mod.Dictionary(this._instance)
         let data = internal.toObject()
         return new Proxy<{ [key: string]: Obj }>(internal, {
             get(target: NPDFInternal, prop: any) {

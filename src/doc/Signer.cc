@@ -21,11 +21,13 @@
 #include "../ErrorHandler.h"
 #include "../ValidateArguments.h"
 
+
+namespace NoPoDoFo {
+
 using namespace Napi;
 using namespace PoDoFo;
 
-namespace NoPoDoFo {
-FunctionReference Signer::constructor;
+FunctionReference Signer::constructor; // NOLINT
 
 Signer::Signer(const Napi::CallbackInfo& info)
   : ObjectWrap(info)
@@ -41,10 +43,8 @@ Signer::Signer(const Napi::CallbackInfo& info)
 Signer::~Signer()
 {
   HandleScope scope(Env());
-  if (doc != nullptr)
-    doc = nullptr;
-  if (field != nullptr)
-    field = nullptr;
+  doc = nullptr;
+  field = nullptr;
 }
 
 void

@@ -29,7 +29,7 @@ using namespace Napi;
 
 namespace NoPoDoFo {
 
-FunctionReference SimpleTable::constructor;
+FunctionReference SimpleTable::constructor; // NOLINT
 
 SimpleTable::SimpleTable(const CallbackInfo& info)
   : ObjectWrap(info)

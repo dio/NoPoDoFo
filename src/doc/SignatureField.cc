@@ -20,17 +20,10 @@
 #include "SignatureField.h"
 #include "../ErrorHandler.h"
 #include "../ValidateArguments.h"
-#include "../base/Data.h"
 #include "../doc/Annotation.h"
-#include "../doc/Document.h"
-#include "../doc/Form.h"
-#include "Signer.h"
 
 
 namespace NoPoDoFo {
-
-using namespace Napi;
-using namespace PoDoFo;
 
 FunctionReference SignatureField::constructor; // NOLINT
 

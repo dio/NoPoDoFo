@@ -26,6 +26,10 @@
 namespace NoPoDoFo {
 
 
+using namespace std;
+using namespace Napi;
+using namespace PoDoFo;
+
 FunctionReference Page::constructor; // NOLINT
 
 Page::Page(const CallbackInfo& info)

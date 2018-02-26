@@ -1,12 +1,13 @@
 import {existsSync, unlinkSync, writeFile} from 'fs'
 import {join} from 'path'
-import * as test from 'tape'
+import * as tap from 'tape'
 import {Document} from './document'
 import {Obj} from "./object";
 import {Field} from './field';
 import {Painter} from "./painter";
 import {Image} from "./image";
 import {Page} from "./page";
+import {Test} from "tape";
 
 
 const filePath = join(__dirname, '../test-documents/test.pdf'),
@@ -14,14 +15,17 @@ const filePath = join(__dirname, '../test-documents/test.pdf'),
     doc = new Document(filePath)
 let page: Page;
 
-doc.on('ready', e => {
-    page = doc.getPage(0)
-    runAll()
+tap('Page Api', sub => {
+     doc.on('ready', e => {
+        page = doc.getPage(0)
+        runAll(sub)
+    })
 })
 
-function pageRotation() {
 
-    test('set page rotation', t => {
+function pageRotation(test:Function) {
+
+    test('set page rotation', (t:Test) => {
         const originalRotation = page.rotation,
             newRotation = originalRotation + 90
         page.rotation = newRotation
@@ -38,8 +42,8 @@ function pageRotation() {
     })
 }
 
-function pageProperties() {
-    test('page instance properties', t => {
+function pageProperties(test:Function) {
+    test('page instance properties', (t:Test) => {
         t.assert(page.number === 1, 'page number valid')
         t.assert(page.width > 0, 'page width valid')
         t.assert(page.height > 0, 'page height valid')
@@ -47,8 +51,8 @@ function pageProperties() {
     })
 }
 
-function pageTrimBox() {
-    test('get trimbox', t => {
+function pageTrimBox(test:Function) {
+    test('get trimbox', (t:Test) => {
         const trimBox = page.trimBox
         t.assert(trimBox.height > 0, 'trimbox height is not null')
         t.assert(trimBox.width > 0, 'trimbox width not null')
@@ -58,8 +62,8 @@ function pageTrimBox() {
     })
 }
 
-function pageFields() {
-    test('get number of fields', t => {
+function pageFields(test:Function) {
+    test('get number of fields', (t:Test) => {
         let n = page.getNumFields()
         t.assert(typeof n === 'number')
         // t.assert(page.getNumFields() === 22, 'page get number of fields counts all fields')
@@ -67,8 +71,8 @@ function pageFields() {
     })
 }
 
-function pageFieldInfoArray() {
-    test('get fields info', t => {
+function pageFieldInfoArray(test:Function) {
+    test('get fields info', (t:Test) => {
         try {
             const fields = page.getFieldsInfo()
 
@@ -86,8 +90,8 @@ function pageFieldInfoArray() {
     })
 }
 
-function pageGetField() {
-    test('get field', t => {
+function pageGetField(test:Function) {
+    test('get field', (t:Test) => {
         const field = page.getField(0)
 
         t.assert(field instanceof Field, 'is an instance of Field')
@@ -95,8 +99,8 @@ function pageGetField() {
     })
 }
 
-function pageGetFields() {
-    test('get fields', t => {
+function pageGetFields(test:Function) {
+    test('get fields', (t:Test) => {
         const fields = page.getFields()
         t.assert(Array.isArray(fields), 'returns an array')
         t.assert(fields.length === page.getNumFields(), 'is not an empty array')
@@ -105,15 +109,15 @@ function pageGetFields() {
     })
 }
 
-function pageGetAnnotsCount() {
-    test('page number of annotations', t => {
+function pageGetAnnotsCount(test:Function) {
+    test('page number of annotations', (t:Test) => {
         t.assert(page.getNumAnnots() === 22, 'get\'s all annotations on the page')
         t.end()
     })
 }
 
-function pageGetAnnot() {
-    test('page get annotation', t => {
+function pageGetAnnot(test:Function) {
+    test('page get annotation', (t:Test) => {
         const annot = page.getAnnotation(0)
         t.ok(annot)
         t.assert(annot.getType() === 'Widget')
@@ -121,8 +125,8 @@ function pageGetAnnot() {
     })
 }
 
-function pageContents() {
-    test('page contents', t => {
+function pageContents(test:Function) {
+    test('page contents', (t:Test) => {
         const contents = page.getContents(false)
         t.assert(contents instanceof Obj, 'is an instance of Obj')
         t.assert(contents.length > 0, 'content is not null or empty')
@@ -130,8 +134,8 @@ function pageContents() {
     })
 }
 
-function pageResources() {
-    test('page resources', t => {
+function pageResources(test:Function) {
+    test('page resources', (t:Test) => {
         const resources = page.getResources()
         t.assert(resources instanceof Obj, 'is instance ob Obj')
         t.assert(resources.length > 0, 'is not null or empty')
@@ -139,8 +143,8 @@ function pageResources() {
     })
 }
 
-function pageAddImg() {
-    test('add image', t => {
+function pageAddImg(test:Function) {
+    test('add image', (t:Test) => {
         const painter = new Painter(doc),
             img = new Image(doc, join(__dirname, '../test-documents/test.jpg'))
 
@@ -204,14 +208,14 @@ function pageAddImg() {
     })
 }
 
-function runTest(test: Function) {
+function runTest(a: Function, b:Test) {
     setImmediate(() => {
-        //global.gc()
-        test()
+        global.gc()
+        a(b.test)
     })
 }
 
-export function runAll() {
+export function runAll(test:Test) {
     [
         pageRotation,
         pageProperties,
@@ -225,6 +229,6 @@ export function runAll() {
         pageContents,
         pageResources,
         pageAddImg
-    ].map(i => runTest(i))
+    ].map(i => runTest(i, test))
 }
 
