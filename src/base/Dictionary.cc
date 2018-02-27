@@ -23,18 +23,24 @@
 #include "Obj.h"
 #include <algorithm>
 
-namespace NoPoDoFo {
-
 using namespace std;
+
 using namespace Napi;
 using namespace PoDoFo;
+
+namespace NoPoDoFo {
 
 FunctionReference Dictionary::constructor; // NOLINT
 
 Dictionary::Dictionary(const CallbackInfo& info)
   : ObjectWrap<Dictionary>(info)
-  , obj(Obj::Unwrap(info[0].As<Object>()))
 {
+  obj = Obj::Unwrap(info[0].As<Object>());
+}
+Dictionary::~Dictionary()
+{
+  HandleScope scope(Env());
+  obj = nullptr;
 }
 void
 Dictionary::Initialize(Napi::Env& env, Napi::Object& target)
@@ -314,10 +320,5 @@ Dictionary::Write(const CallbackInfo& info)
     ErrorHandler(err, info);
   }
   return info.Env().Undefined();
-}
-Dictionary::~Dictionary()
-{
-  HandleScope scope(Env());
-  obj = nullptr;
 }
 }

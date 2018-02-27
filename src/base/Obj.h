@@ -21,15 +21,14 @@
 #define NPDF_OBJ_H
 
 #include "Vector.h"
-
 #include <napi.h>
 #include <podofo/podofo.h>
-
 #include <utility>
+
+namespace NoPoDoFo {
 
 using namespace std;
 
-namespace NoPoDoFo {
 class Obj : public Napi::ObjectWrap<Obj>
 {
 public:

@@ -172,6 +172,7 @@ Value
 Array::GetObjAtIndex(const CallbackInfo& info)
 {
 
+  EscapableHandleScope scope(info.Env());
   size_t index = info[0].As<Number>().Uint32Value();
   if (index > GetArray().size()) {
     throw Napi::RangeError();
@@ -179,7 +180,7 @@ Array::GetObjAtIndex(const CallbackInfo& info)
   PdfObject item = GetArray()[index];
   auto initPtr = Napi::External<PdfObject>::New(info.Env(), &item);
   auto instance = Obj::constructor.New({ initPtr });
-  return instance;
+  return scope.Escape(instance);
 }
 
 Napi::Value
@@ -190,8 +191,8 @@ Array::ToArray(const Napi::CallbackInfo& info)
   try {
     uint32_t counter = 0;
     for (auto& it : GetArray()) {
-      const auto initPtr = External<PdfObject>::New(Env(), &it);
-      const auto instance = Obj::constructor.New({ initPtr });
+      auto initPtr = External<PdfObject>::New(Env(), &it);
+      auto instance = Obj::constructor.New({ initPtr });
       js.Set(counter, instance);
       counter++;
     }

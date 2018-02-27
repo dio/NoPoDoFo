@@ -26,8 +26,6 @@
 #include <podofo/podofo.h>
 #include <string>
 
-using namespace std;
-
 namespace NoPoDoFo {
 class Dictionary : public Napi::ObjectWrap<Dictionary>
 {

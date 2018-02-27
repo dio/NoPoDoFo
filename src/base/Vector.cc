@@ -83,7 +83,7 @@ Vector::Initialize(Napi::Env& env, Napi::Object& target)
 }
 
 Napi::Value
-Vector::GetParentDocument(const Napi::CallbackInfo& info)
+Vector::GetParentDocument(const Napi::CallbackInfo&)
 {
   return document->Value();
 }
@@ -159,37 +159,77 @@ Vector::GetObject(const Napi::CallbackInfo& info)
 Napi::Value
 Vector::GetIndex(const Napi::CallbackInfo& info)
 {
-  throw Error::New(info.Env(), "unimplemented");
+  PdfReference ref = Ref::Unwrap(info[0].As<Object>())->GetRef();
+  return Number::New(info.Env(), GetVector().GetIndex(ref));
 }
 Napi::Value
 Vector::CreateObject(const Napi::CallbackInfo& info)
 {
-  throw Error::New(info.Env(), "unimplemented");
+  EscapableHandleScope scope(info.Env());
+  auto v = info[0];
+  PdfObject* o;
+  if (v.IsBoolean()) {
+    PdfVariant var(v.As<Boolean>());
+    o = new PdfObject(var);
+  } else if (v.IsNumber()) {
+    PdfVariant var(v.As<Number>().Int64Value());
+    o = new PdfObject(var);
+  } else if (v.IsString()) {
+    PdfVariant var(v.As<String>());
+    o = new PdfObject(var);
+  } else {
+    throw Error::New(info.Env(),
+                     "PdfObject supports boolean, integer, and string types");
+  }
+  return scope.Escape(
+    Obj::constructor.New({ External<PdfObject>::New(info.Env(), o) }));
 }
-Napi::Value
+void
 Vector::RemoveObject(const Napi::CallbackInfo& info)
 {
-  throw Error::New(info.Env(), "unimplemented");
+  PdfReference ref = Ref::Unwrap(info[0].As<Object>())->GetRef();
+  GetVector().RemoveObject(ref);
 }
-Napi::Value
+void
 Vector::CollectGarbage(const Napi::CallbackInfo& info)
 {
-  throw Error::New(info.Env(), "unimplemented");
+  PdfObject* target = Obj::Unwrap(info[0].As<Object>())->GetObject();
+  GetVector().CollectGarbage(target);
 }
 
-Value
+void
 Vector::AddFreeObject(const CallbackInfo& info)
 {
+  PdfReference ref = Ref::Unwrap(info[0].As<Object>())->GetRef();
+  GetVector().AddFreeObject(ref);
 }
 
 Value
 Vector::GetFreeObjects(const CallbackInfo& info)
 {
+  EscapableHandleScope scope(info.Env());
+  auto js = Array::New(info.Env());
+  auto list = GetVector().GetFreeObjects();
+  uint32_t i = 0;
+  for (auto& it : list) {
+    PdfObject o(it);
+    js.Set(i,
+           Obj::constructor.New({ External<PdfObject>::New(info.Env(), &o) }));
+    ++i;
+  }
+  return scope.Escape(js);
 }
 
 Value
 Vector::Push(const CallbackInfo& info)
 {
+  PdfObject* o = Obj::Unwrap(info[0].As<Object>())->GetObject();
+  try {
+    GetVector().push_back(o);
+  } catch (PdfError& err) {
+    ErrorHandler(err, info);
+  }
+  return this->Value();
 }
 
 Value

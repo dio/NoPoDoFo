@@ -46,9 +46,9 @@ public:
   Napi::Value GetObject(const Napi::CallbackInfo& info);
   Napi::Value GetIndex(const Napi::CallbackInfo& info);
   Napi::Value CreateObject(const Napi::CallbackInfo& info);
-  Napi::Value RemoveObject(const Napi::CallbackInfo& info);
-  Napi::Value CollectGarbage(const Napi::CallbackInfo& info);
-  Napi::Value AddFreeObject(const Napi::CallbackInfo& info);
+  void RemoveObject(const Napi::CallbackInfo& info);
+  void CollectGarbage(const Napi::CallbackInfo& info);
+  void AddFreeObject(const Napi::CallbackInfo& info);
   Napi::Value GetFreeObjects(const Napi::CallbackInfo& info);
   Napi::Value Push(const Napi::CallbackInfo& info);
   Napi::Value Sort(const Napi::CallbackInfo& info);

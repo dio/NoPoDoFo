@@ -19,12 +19,12 @@
 
 #include "Document.h"
 
-#include <utility>
 #include "../ErrorHandler.h"
 #include "../ValidateArguments.h"
 #include "../base/Obj.h"
-#include "Form.h"
 #include "Font.h"
+#include "Form.h"
+#include <utility>
 
 namespace NoPoDoFo {
 
@@ -355,14 +355,12 @@ Document::GetObjects(const CallbackInfo& info)
     auto js = Array::New(info.Env());
     uint32_t count = 0;
     for (auto& item : document->GetObjects()) {
-      auto instance = External<PdfObject>::New(info.Env(), item, [](Napi::Env env, PdfObject* data) {
-          HandleScope scope(env);
-          delete data;
-    });
+      auto instance = External<PdfObject>::New(info.Env(), item);
       js[count] = Obj::constructor.New({ instance });
       ++count;
     }
     return scope.Escape(js);
+    //    return js;
   } catch (PdfError& err) {
     ErrorHandler(err, info);
   } catch (Error& err) {
@@ -374,11 +372,12 @@ Document::GetObjects(const CallbackInfo& info)
 Napi::Value
 Document::GetTrailer(const CallbackInfo& info)
 {
+  EscapableHandleScope scope(info.Env());
   const PdfObject* trailerPdObject = document->GetTrailer();
   auto* ptr = const_cast<PdfObject*>(trailerPdObject);
   auto initPtr = Napi::External<PdfObject>::New(info.Env(), ptr);
   auto instance = Obj::constructor.New({ initPtr });
-  return instance;
+  return scope.Escape(instance);
 }
 
 Napi::Value

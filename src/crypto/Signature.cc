@@ -2,7 +2,7 @@
  * This file is part of the NoPoDoFo (R) project.
  * Copyright (c) 2017-2018
  * Authors: Cory Mickelson, et al.
- * 
+ *
  * NoPoDoFo is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -29,9 +29,9 @@ NPDFSignatureData(const Napi::CallbackInfo& info)
 {
   AssertFunctionArgs(info, 3, { napi_string, napi_string, napi_string });
 
-  auto signerPEMPath = info[0].As<String>().Utf8Value();
-  auto privateKeyPemPath = info[1].As<String>().Utf8Value();
-  auto pkeyPassword = info[2].As<String>().Utf8Value();
+  const auto signerPEMPath = info[0].As<String>().Utf8Value();
+  const auto privateKeyPemPath = info[1].As<String>().Utf8Value();
+  const auto pkeyPassword = info[2].As<String>().Utf8Value();
 
   X509* cert = nullptr;
   EVP_PKEY* pkey = nullptr;

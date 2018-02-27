@@ -60,19 +60,8 @@ Obj::Initialize(Napi::Env& env, Napi::Object& target)
 
 Obj::Obj(const Napi::CallbackInfo& info)
   : ObjectWrap<Obj>(info)
-  , obj(info[0].As<External<PdfObject>>().Data())
 {
-//  if (info[0].Type() == napi_external) {
-//    obj = info[0].As<External<PdfObject>>().Data();
-//  } else if (info[0].IsObject() &&
-//             info[0].As<Object>().InstanceOf(Vector::constructor.Value()) &&
-//             info.Length() >= 2 && info[1].IsNumber()) {
-//    vector = Vector::Unwrap(info[0].As<Object>());
-//    objnum = info[1].As<Number>();
-//    if (info.Length() == 3 && info[2].IsNumber()) {
-//      gennum = info[2].As<Number>().Uint32Value();
-//    }
-//  }
+  obj = info[0].As<External<PdfObject>>().Data();
 }
 
 Obj::~Obj()
@@ -80,7 +69,7 @@ Obj::~Obj()
   HandleScope scope(Env());
   delete obj;
   obj = nullptr;
-//  vector = nullptr;
+  //  vector = nullptr;
 }
 
 void

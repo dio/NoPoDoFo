@@ -7,20 +7,84 @@ import {Field} from './field';
 import {Painter} from "./painter";
 import {Image} from "./image";
 import {Page} from "./page";
-import {Test} from "tape";
+import {only, Test} from "tape";
 
 
 const filePath = join(__dirname, '../test-documents/test.pdf'),
     outFile = './test.out.pdf',
     doc = new Document(filePath)
-let page: Page;
+// let page: Page;
 
-tap('Page Api', sub => {
-     doc.on('ready', e => {
-        page = doc.getPage(0)
-        runAll(sub)
-    })
+doc.on('ready', pdf => {
+    let page = pdf.getPage(0)
+    const painter = new Painter(doc),
+            img = new Image(doc, join(__dirname, '../test-documents/test.jpg'))
+
+        painter.page = page
+        painter.drawImage(img, 0, page.height - img.getHeight())
+        painter.finishPage()
+
+        doc.write(e => {
+
+            let objs = doc.getObjects()
+            for (let i = 0; i < objs.length; i++) {
+                let o = objs[i]
+                if (o.type === 'Dictionary') {
+                    let objDict = o.asObject(),
+                        objType = objDict['Type'],
+                        objSubType = objDict['SubType']
+
+                    if ((objType && objType.type === 'Name') ||
+                        (objSubType && objSubType.type === 'Name')) {
+
+                        if ((objType && objType.asName() === 'XObject') || (objSubType && objSubType.asName() === 'Image')) {
+                            let imgObj = o.asObject()['Filter']
+
+                            if (imgObj && imgObj.type === 'Array') {
+                                const imgObjArr = imgObj.asArray()
+                                if (imgObjArr.length === 1) {
+                                    if (imgObjArr[0].type === 'Name') {
+                                    // if (imgObj.asArray().at(0).type === 'Name') {
+                                        // if (imgObj.asArray().at(0).asName() === 'DCTDecode') {
+                                        if (imgObjArr[0].asName() === 'DCTDecode') {
+                                            extractImg(o, true)
+                                            return
+                                        }
+                                    }
+                                }
+                            }
+                            else if (imgObj && imgObj.type === 'Name' && imgObj.asName() === 'DCTDecode') {
+                                extractImg(o, true)
+                                return
+                            }
+                            else {
+                                extractImg(o, false)
+                                return
+                            }
+                        }
+                    }
+                }
+            }
+        }, './img.out.pdf')
+
+        function extractImg(obj: Obj, jpg: Boolean) {
+            let ext = jpg ? '.jpg' : '.ppm'
+            writeFile(`/tmp/test.img.extract.${ext}`, obj.stream, err => {
+                if (err instanceof Error)
+                    // t.fail()
+                // t.assert(existsSync(`/tmp/test.img.extract.${ext}`) === true)
+                if (existsSync('./img.out.pdf')) unlinkSync('./img.out.pdf')
+                // t.end()
+            })
+        }
 })
+let page:Page
+// tap('Page Api', sub => {
+//      doc.on('ready', e => {
+//         page = doc.getPage(0)
+//         runAll(sub)
+//     })
+// })
 
 
 function pageRotation(test:Function) {
